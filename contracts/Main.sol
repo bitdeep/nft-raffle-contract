@@ -5,8 +5,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-
-contract Main is Ownable {
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+contract Main is Ownable, IERC721Receiver  {
     using SafeERC20 for IERC20;
     using SafeERC20 for IERC721;
     address FEE_RECIPIENT1;
@@ -77,5 +77,7 @@ contract Main is Ownable {
         );
         token.safeTransferFrom(msg.sender, address(this), raffle.nft_id);
     }
-
+    function onERC721Received(address, address, uint256, bytes memory) public virtual override returns (bytes4) {
+        return this.onERC721Received.selector;
+    }
 }
