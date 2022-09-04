@@ -35,6 +35,7 @@ contract Main is Ownable, IERC721Receiver {
 
     enum STATUS {ACTIVE, FINISHED, CANCELLED}
     struct Raffle {
+        uint id;
         STATUS status;
         uint max_per_user; // max raffle by user
         uint total; // raffle size
@@ -46,6 +47,8 @@ contract Main is Ownable, IERC721Receiver {
         address seller;
         uint price;
         uint amount;
+        uint timestamp_soldout;
+
     }
 
     Raffle[] public raffles;
@@ -83,6 +86,7 @@ contract Main is Ownable, IERC721Receiver {
         require(_nft != address(0), "E2");
         address[] memory _users = new address[](0);
         Raffle memory raffle = Raffle({
+        id: raffles.length,
         status : STATUS.ACTIVE,
         max_per_user : _max_per_user,
         total : _total,
@@ -93,9 +97,13 @@ contract Main is Ownable, IERC721Receiver {
         users_length : 0,
         seller : msg.sender,
         price : _price,
-        amount : 0});
+        amount : 0,
+        timestamp_soldout: 0});
+
         raffles.push(raffle);
+
         IERC721 token = IERC721(raffle.nft);
+
         require(
             token.ownerOf(raffle.nft_id) == msg.sender,
             "NFT is not owned by caller"
@@ -140,6 +148,7 @@ contract Main is Ownable, IERC721Receiver {
         assembly {_randomNumber := mod(_randomNumber, _mod)}
         raffle.winner = raffle.users[_randomNumber];
         raffle.status = STATUS.FINISHED;
+        raffle.timestamp_soldout = block.timestamp;
         //console.log('raffle.winner=%s _randomNumber=%s', raffle.winner, _randomNumber);
         IERC721(raffle.nft).safeTransferFrom(address(this), raffle.winner, raffle.nft_id);
 

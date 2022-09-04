@@ -1,4 +1,4 @@
-const abi_main = [
+const abi_main =  [
     {
         "inputs": [],
         "stateMutability": "nonpayable",
@@ -211,6 +211,11 @@ const abi_main = [
             {
                 "components": [
                     {
+                        "internalType": "uint256",
+                        "name": "id",
+                        "type": "uint256"
+                    },
+                    {
                         "internalType": "enum Main.STATUS",
                         "name": "status",
                         "type": "uint8"
@@ -263,6 +268,11 @@ const abi_main = [
                     {
                         "internalType": "uint256",
                         "name": "amount",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "timestamp_soldout",
                         "type": "uint256"
                     }
                 ],
@@ -281,6 +291,11 @@ const abi_main = [
             {
                 "components": [
                     {
+                        "internalType": "uint256",
+                        "name": "id",
+                        "type": "uint256"
+                    },
+                    {
                         "internalType": "enum Main.STATUS",
                         "name": "status",
                         "type": "uint8"
@@ -333,6 +348,11 @@ const abi_main = [
                     {
                         "internalType": "uint256",
                         "name": "amount",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "timestamp_soldout",
                         "type": "uint256"
                     }
                 ],
@@ -351,6 +371,11 @@ const abi_main = [
             {
                 "components": [
                     {
+                        "internalType": "uint256",
+                        "name": "id",
+                        "type": "uint256"
+                    },
+                    {
                         "internalType": "enum Main.STATUS",
                         "name": "status",
                         "type": "uint8"
@@ -403,6 +428,11 @@ const abi_main = [
                     {
                         "internalType": "uint256",
                         "name": "amount",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "timestamp_soldout",
                         "type": "uint256"
                     }
                 ],
@@ -427,6 +457,11 @@ const abi_main = [
             {
                 "components": [
                     {
+                        "internalType": "uint256",
+                        "name": "id",
+                        "type": "uint256"
+                    },
+                    {
                         "internalType": "enum Main.STATUS",
                         "name": "status",
                         "type": "uint8"
@@ -479,6 +514,11 @@ const abi_main = [
                     {
                         "internalType": "uint256",
                         "name": "amount",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "timestamp_soldout",
                         "type": "uint256"
                     }
                 ],
@@ -585,6 +625,11 @@ const abi_main = [
         "name": "raffles",
         "outputs": [
             {
+                "internalType": "uint256",
+                "name": "id",
+                "type": "uint256"
+            },
+            {
                 "internalType": "enum Main.STATUS",
                 "name": "status",
                 "type": "uint8"
@@ -632,6 +677,11 @@ const abi_main = [
             {
                 "internalType": "uint256",
                 "name": "amount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "timestamp_soldout",
                 "type": "uint256"
             }
         ],

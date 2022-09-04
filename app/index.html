@@ -94,6 +94,7 @@
             let html = '';
             for( let i = 0 ; i < list.length ; i ++ ){
                 const r = list[i];
+                const id = r.id;
                 const max_per_user = r.max_per_user;
                 const total = r.total;
                 const nft = r.nft;
@@ -104,15 +105,15 @@
                 const price = web3.utils.fromWei(r.price);
                 const amount = web3.utils.fromWei(r.amount);
                 html += `
-                    <li class="list-group-item"> #${i}:
+                    <li class="list-group-item"> #${id}:
                     NFT: ${nft.slice(-4)}, id: ${nft_id},
                     Users (${users_length}): ,
                     Seller: ${seller.slice(-4)}, Price: ${price} ETH,
                     Collected: ${amount} ETH, Total: ${total},
                     max per user: ${max_per_user}
-                    <a href="#" onclick="buy(1,${i}); return false;">Buy One</a>
-                    <a href="#" onclick="users(${i}); return false;">Users</a>
-                    <div id="users${i}"></div>
+                    <a href="#" onclick="buy(1,${id}); return false;">Buy One</a>
+                    <a href="#" onclick="users(${id}); return false;">Users</a>
+                    <div id="users${id}"></div>
                     </li>`;
             }
             $('#active_raffles').html(html);
@@ -123,6 +124,7 @@
             let html = '';
             for( let i = 0 ; i < list.length ; i ++ ){
                 const r = list[i];
+                const id = r.id;
                 const max_per_user = r.max_per_user;
                 const total = r.total;
                 const nft = r.nft;
@@ -133,14 +135,14 @@
                 const price = web3.utils.fromWei(r.price);
                 const amount = web3.utils.fromWei(r.amount);
                 html += `
-                    <li class="list-group-item"> #${i}:
+                    <li class="list-group-item"> #${id}:
                     NFT: ${nft.slice(-4)}, id: ${nft_id},
                     Users (${users_length}): ,
                     Seller: ${seller.slice(-4)}, Price: ${price} ETH,
                     Collected: ${amount} ETH, Total: ${total},
                     winner: ${winner.slice(-4)}
-                    <a href="#" onclick="users(${i}); return false;">Users</a>
-                    <div id="users${i}"></div>
+                    <a href="#" onclick="users(${id}); return false;">Users</a>
+                    <div id="users${id}"></div>
                     </li>`;
             }
             $('#finished_raffles').html(html);
@@ -276,7 +278,7 @@
                         <li class="list-group-item">
                             main <input id="contract" size="55" type="text"
                                         onblur="main()"
-                                        value="0x4642c6EF17eFab53859d5fEd1Bbb513efdA078d2"/>
+                                        value="0x4f288E5e7736d30cFE55668D4fcB82C6f3fbEb16"/>
                         </li>
                         <li class="list-group-item">
                             nft <input id="nft" size="55" type="text"
@@ -321,7 +323,7 @@
             <br/>
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title">Step 2: Add Raffle</h5>
+                    <h5 class="card-title">Step 3: Create a NFT Raffle</h5>
                 </div>
                 <div class="card-body">
 
@@ -386,7 +388,7 @@
         <div class="col">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title">Active Raffle's</h5>
+                    <h5 class="card-title">Step 4: buy a raffle ticket from an active raffle:</h5>
                 </div>
                 <div class="card-body">
 
@@ -403,7 +405,7 @@
         <div class="col">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title">Finished Raffle's</h5>
+                    <h5 class="card-title">Step 5: see sold out raffles and winner:</h5>
                 </div>
                 <div class="card-body">
 
