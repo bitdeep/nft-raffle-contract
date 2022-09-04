@@ -20,28 +20,35 @@ describe("Main", function () {
         it("main", async function () {
 
             await nft.mint();
-            await nft.connect(USER1).mint();
-            await nft.connect(USER2).mint();
-            await nft.connect(USER3).mint();
-            await nft.connect(USER4).mint();
-            await nft.connect(USER5).mint();
-
-            const index = await nft.index();
-            expect(index).to.equal("6");
+            await nft.mint();
+            await nft.mint();
+            await nft.mint();
+            await nft.mint();
+            await nft.mint();
+            await nft.mint();
+            await nft.mint();
+            await nft.mint();
+            await nft.mint();
             await nft.setApprovalForAll(main.address, true);
-            await nft.connect(USER1).setApprovalForAll(main.address, true);
-            await nft.connect(USER2).setApprovalForAll(main.address, true);
-            await nft.connect(USER3).setApprovalForAll(main.address, true);
-            await nft.connect(USER4).setApprovalForAll(main.address, true);
-            await nft.connect(USER5).setApprovalForAll(main.address, true);
-
             const _max_per_user = '2';
             const _nft = nft.address;
             const _nft_id = '0';
             const _price = 1e18.toString();
             const _total = 5;
-            await main.create_raffle(_max_per_user, _nft, _nft_id, _price, _total);
 
+            await main.create_raffle(_max_per_user, _nft, '0', _price, _total);
+            await main.create_raffle(_max_per_user, _nft, '1', _price, _total);
+            await main.create_raffle(_max_per_user, _nft, '2', _price, _total);
+            await main.create_raffle(_max_per_user, _nft, '3', _price, _total);
+            await main.create_raffle(_max_per_user, _nft, '4', _price, _total);
+            await main.create_raffle(_max_per_user, _nft, '5', _price, _total);
+            await main.create_raffle(_max_per_user, _nft, '6', _price, _total);
+            await main.create_raffle(_max_per_user, _nft, '7', _price, _total);
+            await main.create_raffle(_max_per_user, _nft, '8', _price, _total);
+            await main.create_raffle(_max_per_user, _nft, '9', _price, _total);
+
+            const raffles = await main.getActiveRaffles();
+            console.log(raffles);
             const rafle_id = '0';
             await main.connect(USER1).buy(1,rafle_id, {value: _price});
             await main.connect(USER2).buy(1,rafle_id, {value: _price});

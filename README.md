@@ -1,13 +1,2 @@
-# Sample Hardhat Project
-
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
-
-Try running some of the following tasks:
-
-```shell
-npx hardhat help
-npx hardhat test
-GAS_REPORT=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.js
-```
+bsc testnet Main 0x17C57F94Bdd1AA4059061EdEaaCa432Ed0d31a5C
+bsc testnet mocnft 0xA64f840d552d261D671486140d3E60A8010F14Cb

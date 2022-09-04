@@ -1,6 +1,18 @@
 require("@nomicfoundation/hardhat-toolbox");
-
-/** @type import('hardhat/config').HardhatUserConfig */
+require('dotenv').config({ path: '.env' });
 module.exports = {
-  solidity: "0.8.9",
+  solidity: "0.8.16",
+  networks: {
+    hardhat: {
+      blockGasLimit: 12_450_000,
+      hardfork: "london"
+    },
+    localhost: {
+      url: 'http://localhost:8545',
+    }, /*
+    one: {
+      url: 'https://rpc.hermesdefi.io',
+      accounts: [`${process.env.PRIVATE_KEY}`]
+    }, */
+  },
 };
