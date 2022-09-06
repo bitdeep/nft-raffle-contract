@@ -13,7 +13,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/3.0.0-rc.5/web3.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="abi-nft.js"></script>
-    <script src="abi-main.js"></script>
+    <script src="abi-main.js?v1"></script>
 
     <script>
         // web3 functions to operate on blockchain (connected to metamask)
@@ -25,6 +25,7 @@
         // contract object to make calls
         let contract, nft;
 
+        let listing_fee;
 
         async function accountLoad() {
             if (window.ethereum) {
@@ -40,6 +41,8 @@
             const enabled = await accountLoad();
             if (enabled) {
                 $('#account').val(account);
+                $('#royalties_recipient').val(account);
+                $('#listing_fee_recipient').val(account);
                 initContract();
             } else {
                 $('#ethEnabled').html('no')
@@ -70,6 +73,12 @@
             $('#create_raffle').prop('disabled', !isApprovedForAll);
 
             $('#approval').html(`isApprovedForAll: ${approve_info}`);
+
+            const nft_contract_status = await contract.methods.nfts(nft._address).call();
+            listing_fee = nft_contract_status.listing_fee;
+            const nft_status = `status: ${nft_contract_status.status}, fee: ${nft_contract_status.fee}%, listing_fee: ${listing_fee/1e18}`;
+            $('#nft_status').html(nft_status);
+            console.log('nft_contract_status', nft_contract_status);
 
             await nftListMyTokens();
 
@@ -181,6 +190,29 @@
             }
         }
 
+        async function manage_nft() {
+            const mange_nft_nft = $('#mange_nft_nft').val();
+            const mange_nft_fee = $('#mange_nft_fee').val();
+            const royalties_recipient = $('#royalties_recipient').val();
+            const royalties = $('#royalties').val();
+            const _listing_fee = $('#listing_fee').val();
+            const listing_fee = web3.utils.toWei(_listing_fee);
+            const listing_fee_recipient = $('#listing_fee_recipient').val();
+            const manage_nft_status = $('#manage_nft_status').val();
+            try {
+                await contract.methods.manage_nft(mange_nft_nft, mange_nft_fee, royalties_recipient, royalties, listing_fee, listing_fee_recipient, manage_nft_status).estimateGas({from: account},
+                    async function (error, gasAmount) {
+                        if (error) {
+                            alert(error.toString());
+                        } else {
+                            await contract.methods.manage_nft(mange_nft_nft, mange_nft_fee, royalties_recipient, royalties, listing_fee, listing_fee_recipient, manage_nft_status).send({from: account});
+                            await main();
+                        }
+                    });
+            } catch (e) {
+                alert(e.toString());
+            }
+        }
         async function create_raffle() {
             const _max_per_user = $('#_max_per_user').val();
             const _nft = $('#_nft').val();
@@ -189,12 +221,12 @@
             const _total = $('#_total').val();
             const price = web3.utils.toWei(_price);
             try {
-                await contract.methods.create_raffle(_max_per_user, _nft, _nft_id, price, _total).estimateGas({from: account},
+                await contract.methods.create_raffle(_max_per_user, _nft, _nft_id, price, _total).estimateGas({from: account, value: listing_fee},
                     async function (error, gasAmount) {
                         if (error) {
                             alert(error.toString());
                         } else {
-                            await contract.methods.create_raffle(_max_per_user, _nft, _nft_id, price, _total).send({from: account});
+                            await contract.methods.create_raffle(_max_per_user, _nft, _nft_id, price, _total).send({from: account, value: listing_fee});
                             await main();
                         }
                     });
@@ -278,7 +310,7 @@
                         <li class="list-group-item">
                             main <input id="contract" size="55" type="text"
                                         onblur="main()"
-                                        value="0x4f288E5e7736d30cFE55668D4fcB82C6f3fbEb16"/>
+                                        value="0x86eE84553EC2030B7593632D540E85D8DE4Bc8ee"/>
                         </li>
                         <li class="list-group-item">
                             nft <input id="nft" size="55" type="text"
@@ -307,9 +339,7 @@
                     <input onclick="mint()" type="button" value="Mint"/>
                 </div>
             </div>
-
-        </div>
-        <div class="col">
+            <br/>
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title">Step 2: Approve NFT</h5>
@@ -320,10 +350,85 @@
                     <span class="text-muted" id="approval">Checking approval status...</span>
                 </div>
             </div>
-            <br/>
+        </div>
+        <div class="col">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title">Step 3: Create a NFT Raffle</h5>
+                    <h5 class="card-title">Step 3: Admin add nft to Raffle</h5>
+                </div>
+                <div class="card-body">
+
+
+                    <div class="form-group row">
+                        <label for="mange_nft_nft" class="col-sm col-form-label">
+                            nft:
+                        </label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control-plaintext" id="mange_nft_nft" value="0x3124C5403e74fa643BAbe040B266cf5BFf1229c9">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="mange_nft_fee" class="col-sm col-form-label">
+                            fee:
+                        </label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control-plaintext" id="mange_nft_fee" value="10">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="royalties_recipient" class="col-sm col-form-label">
+                            royalties to:
+                        </label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control-plaintext" id="royalties_recipient" value="">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="royalties" class="col-sm col-form-label">
+                            royalties:
+                        </label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control-plaintext" id="royalties" value="2">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="listing_fee" class="col-sm col-form-label">
+                            listing fee (CRO):
+                        </label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control-plaintext" id="listing_fee" value="25">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="listing_fee_recipient" class="col-sm col-form-label">
+                            listing fee recipient:
+                        </label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control-plaintext" id="listing_fee_recipient" value="">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="manage_nft_status" class="col-sm col-form-label">
+                            status:
+                        </label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control-plaintext" id="manage_nft_status" value="1">
+                        </div>
+                    </div>
+
+
+                </div>
+                <div class="card-footer">
+                    <input onclick="manage_nft()" type="button" id="manage_nft" value="manage_nft"/>
+                    <span id="nft_status"></span>
+                </div>
+            </div>
+
+            <br/>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Step 4: Create a NFT Raffle</h5>
                 </div>
                 <div class="card-body">
 
@@ -381,6 +486,7 @@
                     <input onclick="create_raffle()" type="button" disabled id="create_raffle" value="create_raffle"/>
                 </div>
             </div>
+
         </div>
     </div>
 
@@ -394,7 +500,7 @@
 
                     <ul class="list-group list-group-flush" id="active_raffles">
                         <li class="list-group-item">
-                            Aguarde...
+                            Wait...
                         </li>
                     </ul>
                 </div>

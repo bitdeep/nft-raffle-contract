@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.16;
 
-// import "hardhat/console.sol";
+import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
@@ -11,28 +11,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 contract Main is Ownable, IERC721Receiver {
     using SafeERC20 for IERC20;
     using SafeERC20 for IERC721;
-    address FEE_RECIPIENT1;
-    address FEE_RECIPIENT2;
-    address FEE_RECIPIENT3;
-    constructor() {
-        FEE_RECIPIENT1 = msg.sender;
-        FEE_RECIPIENT2 = msg.sender;
-        FEE_RECIPIENT3 = msg.sender;
-    }
-    function setFeeRecipient(address a, address b, address c) public onlyOwner {
-        FEE_RECIPIENT1 = a;
-        FEE_RECIPIENT2 = b;
-        FEE_RECIPIENT3 = c;
-    }
-
-    function moreRand() public view returns (uint, bytes32) {
-        uint _previousBlockNumber;
-        bytes32 _previousBlockHash;
-        _previousBlockNumber = uint(block.number - 1);
-        _previousBlockHash = bytes32(blockhash(_previousBlockNumber));
-        return (_previousBlockNumber, _previousBlockHash);
-    }
-
+    uint rnd_index;
     enum STATUS {ACTIVE, FINISHED, CANCELLED}
     struct Raffle {
         uint id;
@@ -51,42 +30,100 @@ contract Main is Ownable, IERC721Receiver {
 
     }
 
+    address FEE_RECIPIENT1;
+    address FEE_RECIPIENT2;
+    address FEE_RECIPIENT3;
+    constructor() {
+        FEE_RECIPIENT1 = msg.sender;
+        FEE_RECIPIENT2 = msg.sender;
+        FEE_RECIPIENT3 = msg.sender;
+    }
+    struct NFT {
+        STATUS status;
+        uint fee;
+        uint royalties;
+        address royalties_recipient;
+        uint listing_fee;
+        address listing_fee_recipient;
+    }
+    mapping(address => NFT) public nfts;
+    function manage_nft(address nft, uint fee, address royalties_recipient, uint royalties,
+        uint listing_fee, address listing_fee_recipient, STATUS status) external onlyOwner{
+        nfts[nft].fee = fee;
+        nfts[nft].status = status;
+        nfts[nft].royalties_recipient = royalties_recipient;
+        nfts[nft].royalties = royalties;
+        nfts[nft].listing_fee = listing_fee;
+        nfts[nft].listing_fee_recipient = listing_fee_recipient;
+    }
+
+    function setFeeRecipient(address a, address b, address c) public onlyOwner {
+        FEE_RECIPIENT1 = a;
+        FEE_RECIPIENT2 = b;
+        FEE_RECIPIENT3 = c;
+    }
+
+    function moreRand() public view returns (uint, bytes32) {
+        uint _previousBlockNumber;
+        bytes32 _previousBlockHash;
+        _previousBlockNumber = uint(block.number - 1);
+        _previousBlockHash = bytes32(blockhash(_previousBlockNumber));
+        return (_previousBlockNumber, _previousBlockHash);
+    }
+
+
     Raffle[] public raffles;
-    function getUsersByRaffleId(uint id) public view returns( address[] memory ){
+
+    function getUsersByRaffleId(uint id) public view returns (address[] memory){
         return raffles[id].users;
     }
-    function getActiveRaffles() public view returns( Raffle[] memory ){
+
+    function getActiveRaffles() public view returns (Raffle[] memory){
         return getRafflesByStatus(STATUS.ACTIVE);
     }
-    function getFinishedRaffles() public view returns( Raffle[] memory ){
+
+    function getFinishedRaffles() public view returns (Raffle[] memory){
         return getRafflesByStatus(STATUS.FINISHED);
     }
-    function getCancelledRaffles() public view returns( Raffle[] memory ){
+
+    function getCancelledRaffles() public view returns (Raffle[] memory){
         return getRafflesByStatus(STATUS.CANCELLED);
     }
-    function getRafflesByStatus(STATUS s) public view returns( Raffle[] memory ){
+
+    function getRafflesByStatus(STATUS s) public view returns (Raffle[] memory){
         uint total;
-        for( uint i = 0 ; i <raffles.length; i++ ){
-            if( raffles[i].status != s)
+        for (uint i = 0; i < raffles.length; i++) {
+            if (raffles[i].status != s)
                 continue;
             total++;
         }
         Raffle[] memory r = new Raffle[](total);
         uint j;
-        for( uint i = 0 ; i <raffles.length; i++ ){
-            if( raffles[i].status != s)
+        for (uint i = 0; i < raffles.length; i++) {
+            if (raffles[i].status != s)
                 continue;
             r[j++] = raffles[i];
         }
         return r;
     }
+
     event Create_Raffle(uint _max_per_user, address _nft, uint _nft_id, uint _price, uint _total, uint index);
-    function create_raffle(uint _max_per_user, address _nft, uint _nft_id, uint _price, uint _total) public {
+
+    function create_raffle(uint _max_per_user, address _nft, uint _nft_id, uint _price, uint _total) public payable {
         require(_max_per_user > 0, "E1");
-        require(_nft != address(0), "E2");
+        require(_price > 10000, "E2");
+        require(_total > 2, "E3");
+        require(_nft != address(0), "E4");
+        require(nfts[_nft].status != STATUS.ACTIVE, "E5");
+        require( nfts[_nft].listing_fee==0 || nfts[_nft].listing_fee == msg.value, "E6");
+
+        if( nfts[_nft].listing_fee > 0){
+            nfts[_nft].listing_fee_recipient.call{value: msg.value}("");
+        }
+
         address[] memory _users = new address[](0);
         Raffle memory raffle = Raffle({
-        id: raffles.length,
+        id : raffles.length,
         status : STATUS.ACTIVE,
         max_per_user : _max_per_user,
         total : _total,
@@ -98,7 +135,7 @@ contract Main is Ownable, IERC721Receiver {
         seller : msg.sender,
         price : _price,
         amount : 0,
-        timestamp_soldout: 0});
+        timestamp_soldout : 0});
 
         raffles.push(raffle);
 
@@ -109,10 +146,11 @@ contract Main is Ownable, IERC721Receiver {
             "NFT is not owned by caller"
         );
         token.safeTransferFrom(msg.sender, address(this), raffle.nft_id);
-        emit Create_Raffle(_max_per_user, _nft,_nft_id, _price,_total, raffles.length-1 );
+        emit Create_Raffle(_max_per_user, _nft, _nft_id, _price, _total, raffles.length - 1);
     }
 
     event Buy(uint amount, uint raffle_id, uint value, uint users, uint total);
+
     function buy(uint amount, uint raffle_id) payable public {
         Raffle storage raffle = raffles[raffle_id];
         require(raffle.status == STATUS.ACTIVE, "!ACTIVE");
@@ -134,7 +172,8 @@ contract Main is Ownable, IERC721Receiver {
         return this.onERC721Received.selector;
     }
 
-    event Trigger(uint raffle_id, uint amount, uint commission, address winner, uint number);
+    event Trigger(uint raffle_id, uint amount, uint fee, uint royalties, address winner, uint number);
+
     function _trigger(uint raffle_id) internal {
         //console.log('trigger!');
         Raffle storage raffle = raffles[raffle_id];
@@ -143,7 +182,7 @@ contract Main is Ownable, IERC721Receiver {
         uint256 _mod = total - 1;
         uint256 _randomNumber;
         bytes32 _structHash = keccak256(abi.encode(msg.sender, block.difficulty, gasleft(),
-            block.timestamp, _previousBlockNumber, _previousBlockHash));
+            block.timestamp, _previousBlockNumber, _previousBlockHash, ++rnd_index ));
         _randomNumber = uint256(_structHash);
         assembly {_randomNumber := mod(_randomNumber, _mod)}
         raffle.winner = raffle.users[_randomNumber];
@@ -151,16 +190,28 @@ contract Main is Ownable, IERC721Receiver {
         raffle.timestamp_soldout = block.timestamp;
         //console.log('raffle.winner=%s _randomNumber=%s', raffle.winner, _randomNumber);
         IERC721(raffle.nft).safeTransferFrom(address(this), raffle.winner, raffle.nft_id);
+        payments(raffle_id, _randomNumber);
+    }
 
-        uint amount = raffle.amount;
-        uint fee = amount / 10;
-        uint commission = fee / 3;
-        amount -= fee;
+    function payments(uint raffle_id, uint _randomNumber) internal {
+        Raffle storage raffle = raffles[raffle_id];
+        uint total = raffle.amount;
+        uint amount = 0;
+        uint fee = 0;
+        uint royalties = 0;
+        if (nfts[raffle.nft].fee > 0) {
+            fee = (total*nfts[raffle.nft].fee)/100;
+            amount = total-fee;
+            if (nfts[raffle.nft].royalties > 0) {
+                royalties = (fee*nfts[raffle.nft].royalties)/100;
+                fee -= royalties;
+                nfts[raffle.nft].royalties_recipient.call{value : royalties}("");
+            }
+
+            FEE_RECIPIENT1.call{value : fee}("");
+        }
         raffle.seller.call{value : amount}("");
-        FEE_RECIPIENT1.call{value : commission}("");
-        FEE_RECIPIENT2.call{value : commission}("");
-        FEE_RECIPIENT3.call{value : commission}("");
-        emit Trigger(raffle_id, amount, commission, raffle.winner, _randomNumber);
+        emit Trigger(raffle_id, amount, fee, royalties, raffle.winner, _randomNumber);
     }
 
 
