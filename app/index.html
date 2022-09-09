@@ -96,6 +96,8 @@
                     `;
                 html += line;
                 html += addRaffleForm(index, address, NFT.listing_fee, isApprovedForAll);
+                html += await addRaffleList(index, address);
+                html += await getFinishedRaffles(index, address);
             }
             $('#main').html(html);
         }
@@ -103,15 +105,17 @@
             const approve_info = isApprovedForAll ? '' : 'disabled';
             let html = `<p><span class="badge bg-primary">Add raffle:</span>
 
-<button id="${index}approve" type="button" class="btn btn-warning btn-sm" onclick="approve(${index}, '${address}')">Approve</button>
+<button id="${index}approve" type="button" class="btn btn-sm badge rounded-pill bg-warning" onclick="approve(${index}, '${address}')">Approve</button>
 max buy: <input type="text" id="${index}max_per_user" style="width: 80px" placeholder="3" class="small"/>
 token id: <input type="text" id="${index}token_id" style="width: 80px" placeholder="0" class="small" />
 price (in cro/decimal): <input type="text" id="${index}price" style="width: 80px" placeholder="10" class="small" />
 size/units: <input type="text" id="${index}total" style="width: 80px" placeholder="10" class="small" />
 
-<button type="button" ${approve_info} class="btn btn-sm btn-primary" onclick="create_raffle(${index}, '${address}', '${listing_fee}')">Create raffle</button>
+<button type="button" ${approve_info} class="btn btn-sm badge rounded-pill bg-primary" onclick="create_raffle(${index}, '${address}', '${listing_fee}')">Create raffle</button>
 <span class="text-muted" id="${index}tx"></span>
-            </p>`;
+            </p>
+
+`;
             return html;
         }
 
@@ -158,6 +162,108 @@ size/units: <input type="text" id="${index}total" style="width: 80px" placeholde
                 alert(e.toString());
             }
         }
+        async function addRaffleList(index, address){
+            const list = await main.methods.getActiveRaffles().call();
+            let html = '<h6>Available Raffles on this contract</h6><ul>';
+            for( let i = 0 ; i < list.length ; i ++ ){
+                const r = list[i];
+                const id = r.id;
+                const max_per_user = r.max_per_user;
+                const total = r.total;
+                const nft = r.nft;
+                const nft_id = r.nft_id;
+                // const users = r.users;
+                const users_length = r.users_length;
+                const seller = r.seller;
+                const price = web3.utils.fromWei(r.price);
+                const amount = web3.utils.fromWei(r.amount);
+                html += `
+                    <li class="list-group-item"> #${id}:
+                    NFT: ${nft.slice(-4)}, id: ${nft_id},
+                    Users (${users_length}): ,
+                    Seller: ${seller.slice(-4)}, Price: ${price} ETH,
+                    Collected: ${amount} CRO, Total: ${total},
+                    max per user: ${max_per_user}
+                    <button onclick="buy(1,${index},${id}); return false;" class="btn btn-sm badge rounded-pill bg-primary">Buy One</button>
+                    <button href="#" onclick="users(${index}, ${id}); return false;" class="btn btn-sm badge rounded-pill bg-secondary">Users</button>
+                    <div id="users${index}${id}"></div>
+                    </li>`;
+            }
+            html += '</ul>';
+            return html;
+        }
+
+        async function getFinishedRaffles(index, address) {
+            const list = await main.methods.getFinishedRaffles().call();
+            let html = '<h6>Finished Raffles and winners</h6><ul>';
+            for( let i = 0 ; i < list.length ; i ++ ){
+                const r = list[i];
+                const id = r.id;
+                const max_per_user = r.max_per_user;
+                const total = r.total;
+                const nft = r.nft;
+                const nft_id = r.nft_id;
+                const winner = r.winner;
+                const users_length = r.users_length;
+                const seller = r.seller;
+                const price = web3.utils.fromWei(r.price);
+                const amount = web3.utils.fromWei(r.amount);
+                html += `
+                    <li class="list-group-item"> #${id}:
+                    NFT: ${nft.slice(-4)}, id: ${nft_id},
+                    Users (${users_length}): ,
+                    Seller: ${seller.slice(-4)}, Price: ${price} ETH,
+                    Collected: ${amount} ETH, Total: ${total},
+                    winner: ${winner.slice(-4)}
+                    <button href="#" onclick="users(${index}, ${id});" class="btn btn-sm badge rounded-pill bg-secondary">Users</button>
+                    <div id="users${index}${id}"></div>
+                    </li>`;
+            }
+            html += '</ul>';
+            return html;
+        }
+
+        async function buy(amount, index, raffle_id){
+            const r = await main.methods.raffles(raffle_id).call();
+            console.log(r);
+            const max_per_user = r.max_per_user;
+            const total = r.total; // 3
+            const sold = r.users_length; // 2
+            const left = total - sold; // 1
+            console.log(`total=${total}, sold=${sold}, left=${left}, amount=${amount}`);
+            if( amount > left ){
+                alert(`Error: only left ${left} to be bought. You trying to buy ${amount}. Lower your order.`);
+                return;
+            }
+            const price = r.price;
+            if( amount > max_per_user ){
+                alert(`Error: max per user is ${max_per_user}.`);
+                return;
+            }
+            try {
+                const valueToPay = price * amount;
+                await main.methods.buy(amount, raffle_id).estimateGas({from: account, value: valueToPay},
+                    async function (error, gasAmount) {
+                        if (error) {
+                            alert(error.toString());
+                        } else {
+                            await main.methods.buy(amount, raffle_id).send({gas: gasAmount, from: account, value: valueToPay});
+                            await bootstrap();
+                        }
+                    });
+            } catch (e) {
+                alert(e.toString());
+            }
+        }
+        async function users(index, raffle_id){
+            const users = await main.methods.getUsersByRaffleId(raffle_id).call();
+            let html = [];
+            for( let i = 0 ; i < users.length; i++ ){
+                html.push(`${i}=${users[i]}`);
+            }
+            $(`#users${index}${raffle_id}`).html( html.join(', ') );
+        }
+
     </script>
 
 </head>
