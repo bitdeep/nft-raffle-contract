@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.16;
 
-import "hardhat/console.sol";
+//import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
@@ -45,16 +45,25 @@ contract Main is Ownable, IERC721Receiver {
         address royalties_recipient;
         uint listing_fee;
         address listing_fee_recipient;
+        string name;
+        string twitter;
+        string tg;
     }
     mapping(address => NFT) public nfts;
+    address[] public all_nft;
     function manage_nft(address nft, uint fee, address royalties_recipient, uint royalties,
-        uint listing_fee, address listing_fee_recipient, STATUS status) external onlyOwner{
+        uint listing_fee, address listing_fee_recipient, STATUS status,
+        string memory name, string memory twitter, string memory tg) external onlyOwner{
+        all_nft.push(nft);
         nfts[nft].fee = fee;
         nfts[nft].status = status;
         nfts[nft].royalties_recipient = royalties_recipient;
         nfts[nft].royalties = royalties;
         nfts[nft].listing_fee = listing_fee;
         nfts[nft].listing_fee_recipient = listing_fee_recipient;
+        nfts[nft].name = name;
+        nfts[nft].twitter = twitter;
+        nfts[nft].tg = tg;
     }
 
     function setFeeRecipient(address a, address b, address c) public onlyOwner {
@@ -74,6 +83,9 @@ contract Main is Ownable, IERC721Receiver {
 
     Raffle[] public raffles;
 
+    function getAllNnft() public view returns (address[] memory){
+        return all_nft;
+    }
     function getUsersByRaffleId(uint id) public view returns (address[] memory){
         return raffles[id].users;
     }

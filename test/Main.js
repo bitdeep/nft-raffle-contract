@@ -1,6 +1,6 @@
 const {expect} = require("chai");
 
-let nft, main;
+let nft, nft1, nft2, nft3, main;
 let USER1, USER2, USER3, USER4, USER5;
 describe("Main", function () {
     beforeEach(async () => {
@@ -12,6 +12,9 @@ describe("Main", function () {
         USER5 = user5;
         const MockNFT = await ethers.getContractFactory("MockNFT");
         nft = await MockNFT.deploy();
+        nft1 = await MockNFT.deploy();
+        nft2 = await MockNFT.deploy();
+        nft3 = await MockNFT.deploy();
 
         const Main = await ethers.getContractFactory("Main");
         main = await Main.deploy();
@@ -30,6 +33,10 @@ describe("Main", function () {
             await nft.mint();
             await nft.mint();
             await nft.mint();
+
+            const tokenURI = await nft.tokenURI('0');
+            console.log('tokenURI', tokenURI);
+
             await nft.setApprovalForAll(main.address, true);
             const _max_per_user = '2';
             const _nft = nft.address;
@@ -39,8 +46,28 @@ describe("Main", function () {
             let listing_fee = 10e18.toString();
             const royalties_recipient = '0x000000000000000000000000000000000000000a';
             const listing_fee_recipient = '0x000000000000000000000000000000000000000b';
-            await main.manage_nft(_nft, '10', royalties_recipient, '2', listing_fee, listing_fee_recipient, '1');
-            const nft_info = await main.nfts(_nft);
+            await main.manage_nft(_nft, '10', royalties_recipient, '20', listing_fee, listing_fee_recipient, '1', "zero", "twitter.com/zero", "t.me/zero");
+            await main.manage_nft(nft1.address, '10', royalties_recipient, '20', listing_fee, listing_fee_recipient, '1', "one", "twitter.com/one", "t.me/one");
+            await main.manage_nft(nft2.address, '10', royalties_recipient, '20', listing_fee, listing_fee_recipient, '1', "two", "twitter.com/two", "t.me/two");
+            await main.manage_nft(nft3.address, '10', royalties_recipient, '20', listing_fee, listing_fee_recipient, '1', "three", "twitter.com/three", "t.me/three");
+            const getAllNnft = await main.getAllNnft();
+            console.log('getAllNnft', getAllNnft);
+            for( let i in getAllNnft ){
+                const nftContractAddress = getAllNnft[i];
+                const nft_info = await main.nfts(nftContractAddress);
+                // console.log(nft_info);
+                const status = nft_info.status; // 1
+                const fee = nft_info.fee.toString(); // 10
+                const royalties = nft_info.royalties.toString(); // 20
+                const listing_fee = nft_info.listing_fee.toString()/1e18; // 10 1e18
+                const name = nft_info.name; // name
+                const twitter = nft_info.twitter; // twitter.com/name
+                const tg = nft_info.tg; // t.me/three
+                const str = `${name}, ${twitter}, ${tg}, fee: ${fee}%, royalties: ${royalties}%, listing_fee: ${listing_fee} CRO`;
+                if( status == 1 )
+                    console.log(str);
+            }
+
             await main.create_raffle(_max_per_user, _nft, '0', _price, _total, {value: listing_fee});
 
             const raffle_id = '0';
