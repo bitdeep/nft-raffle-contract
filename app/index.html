@@ -12,8 +12,8 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/3.0.0-rc.5/web3.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="abi-nft.js"></script>
-    <script src="abi-main.js?v1"></script>
+    <script src="abi-nft.js?v2"></script>
+    <script src="abi-main.js?v2"></script>
 
     <script>
         // web3 functions to operate on blockchain (connected to metamask)
@@ -65,9 +65,10 @@
         async function getAllNnft(){
             const list = await main.methods.getAllNnft().call();
             let html = '';
-            for( let i in list ){
-                const address = list[i];
+            for( let index in list ){
+                const address = list[index];
                 const NFT = await main.methods.nfts(address).call();
+                const nft = new web3.eth.Contract(abi_nft, address);
                 const status = NFT.status; //: "1"
                 if( status != 1 )
                     continue; // only active nft
@@ -81,6 +82,8 @@
                 const tg = NFT.tg; //: "t.me/testnft"
                 const twitter = NFT.twitter; //: "twitter.com/testnft"
 
+                const isApprovedForAll = (await nft.methods.isApprovedForAll(account, contract).call());
+
                 const line = `
                     <h1>${name} (<a href="https://cronoscan.com/token/${address}#inventory" target="_blank">...${address.substr(address.length-4)}</a>)</h1>
                     <a href="${twitter}" class="badge bg-secondary">${twitter}</a>
@@ -92,21 +95,68 @@
                     </small>
                     `;
                 html += line;
-                html += addRaffleForm();
+                html += addRaffleForm(index, address, NFT.listing_fee, isApprovedForAll);
             }
             $('#main').html(html);
         }
-        function addRaffleForm(index, nft){
+        function addRaffleForm(index, address, listing_fee, isApprovedForAll){
+            const approve_info = isApprovedForAll ? '' : 'disabled';
             let html = `<p><span class="badge bg-primary">Add raffle:</span>
 
-max buy: <input type="text" name="_max_per_user" style="width: 80px" placeholder="3"/>
-token id: <input type="text" name="token_id" style="width: 80px" placeholder="0"/>
-price (in cro/decimal): <input type="text" name="_price" style="width: 80px" placeholder="10" />
-size/units: <input type="text" name="_total" style="width: 80px" placeholder="10" />
+<button id="${index}approve" type="button" class="btn btn-warning btn-sm" onclick="approve(${index}, '${address}')">Approve</button>
+max buy: <input type="text" id="${index}max_per_user" style="width: 80px" placeholder="3" class="small"/>
+token id: <input type="text" id="${index}token_id" style="width: 80px" placeholder="0" class="small" />
+price (in cro/decimal): <input type="text" id="${index}price" style="width: 80px" placeholder="10" class="small" />
+size/units: <input type="text" id="${index}total" style="width: 80px" placeholder="10" class="small" />
 
-<button type="button" class="btn btn-sm btn-primary" onclick="create_raffle(${index}, '${nft}')">Create raffle</button>
+<button type="button" ${approve_info} class="btn btn-sm btn-primary" onclick="create_raffle(${index}, '${address}', '${listing_fee}')">Create raffle</button>
+<span class="text-muted" id="${index}tx"></span>
             </p>`;
             return html;
+        }
+
+        async function approve(index, address) {
+            const nft = new web3.eth.Contract(abi_nft, address);
+            try {
+                await nft.methods.setApprovalForAll(contract, true).estimateGas({from: account},
+                    async function (error, gasAmount) {
+                        if (error) {
+                            $(`#${index}tx`).html(error.toString());
+                        } else {
+                            await nft.methods.setApprovalForAll(contract, true).send({from: account});
+                            await bootstrap();
+                        }
+                    });
+            } catch (e) {
+                alert(e.toString());
+            }
+        }
+
+        async function create_raffle(index, address, listing_fee){
+            const _max_per_user = $(`#${index}max_per_user`).val();
+            const _nft_id = $(`#${index}token_id`).val();
+            const _price = $(`#${index}price`).val();
+            const _total = $(`#${index}total`).val();
+            if( _max_per_user < 1 ) return alert('Invalid max per user.');
+            if( _nft_id === undefined ) return alert('Invalid nft id user.');
+            if( _price < 0.0001 ) return alert('Invalid price user.');
+            if( _total < 3 ) return alert('Invalid total.');
+            const price = web3.utils.toWei(_price);
+            try {
+                await main.methods.create_raffle(_max_per_user, address, _nft_id, price, _total).estimateGas({from: account, value: listing_fee},
+                    async function (error, gasAmount) {
+                        if (error) {
+                            $(`#${index}tx`).html(error.toString());
+                        } else {
+                            const tx = await main.methods.create_raffle(_max_per_user, address, _nft_id, price, _total).send({gas: gasAmount, from: account, value: listing_fee});
+                            console.log(tx);
+                            $(`#${index}tx`).html('Raffle created.');
+                            await bootstrap();
+                        }
+                    });
+            } catch (e) {
+                alert(e.toString());
+            }
         }
     </script>
 
