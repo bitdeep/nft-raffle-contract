@@ -12,8 +12,8 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/3.0.0-rc.5/web3.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="abi-nft.js?v2"></script>
-    <script src="abi-main.js?v2"></script>
+    <script src="abi-nft.js?v3"></script>
+    <script src="abi-main.js?v3"></script>
 
     <script>
         // web3 functions to operate on blockchain (connected to metamask)
@@ -29,6 +29,10 @@
 
         async function accountLoad() {
             if (window.ethereum) {
+                window.ethereum.on('chainChanged', chainId => {
+                    console.log(`chainId: ${chainId}`);
+                    bootstrap();
+                });
                 const r = await window.ethereum.request({method: 'eth_requestAccounts'});
                 web3 = new Web3(window.ethereum);
                 account = r[0];
@@ -44,7 +48,7 @@
                 initContract();
                 getAllNnft();
             } else {
-                $('#ethEnabled').html('no')
+                alert(`Error: install metamask.`);
             }
         }
 
@@ -63,7 +67,12 @@
 
         }
         async function getAllNnft(){
-            const list = await main.methods.getAllNnft().call();
+            let list;
+            try {
+                list = await main.methods.getAllNnft().call();
+            }catch(e){
+                alert(`Please: switch to Cronos mainnet.`);
+            }
             let html = '';
             for( let index in list ){
                 const address = list[index];
@@ -90,7 +99,7 @@
                     <a href="${tg}" class="badge bg-secondary">${tg}</a>
                     <small>
                     <i>
-                        buy fee: ${fee}%, listing_fee: ${listing_fee} CRO, royalties: ${royalties}%
+                        buy fee: ${fee}%, listing_fee: ${listing_fee} CRO, royalties: ${royalties}% on each buy.
                     </i>
                     </small>
                     `;
@@ -110,6 +119,15 @@ max buy: <input type="text" id="${index}max_per_user" style="width: 80px" placeh
 token id: <input type="text" id="${index}token_id" style="width: 80px" placeholder="0" class="small" />
 price (in cro/decimal): <input type="text" id="${index}price" style="width: 80px" placeholder="10" class="small" />
 size/units: <input type="text" id="${index}total" style="width: 80px" placeholder="10" class="small" />
+expires in: <select id="${index}expires" style="width: 80px" placeholder="10" class="small" >
+<option value="3600">1 hour</option>
+<option value="86400">1 day</option>
+<option value="604800">7 days</option>
+<option value="1296000">15 days</option>
+<option value="2592000">30 days</option>
+<option value="5184000">60 days</option>
+<option value="7776000">90 days</option>
+</select>
 
 <button type="button" ${approve_info} class="btn btn-sm badge rounded-pill bg-primary" onclick="create_raffle(${index}, '${address}', '${listing_fee}')">Create raffle</button>
 <span class="text-muted" id="${index}tx"></span>
@@ -141,18 +159,19 @@ size/units: <input type="text" id="${index}total" style="width: 80px" placeholde
             const _nft_id = $(`#${index}token_id`).val();
             const _price = $(`#${index}price`).val();
             const _total = $(`#${index}total`).val();
+            const expires = $(`#${index}expires`).val();
             if( _max_per_user < 1 ) return alert('Invalid max per user.');
             if( _nft_id === undefined ) return alert('Invalid nft id user.');
             if( _price < 0.0001 ) return alert('Invalid price user.');
             if( _total < 3 ) return alert('Invalid total.');
             const price = web3.utils.toWei(_price);
             try {
-                await main.methods.create_raffle(_max_per_user, address, _nft_id, price, _total).estimateGas({from: account, value: listing_fee},
+                await main.methods.create_raffle(_max_per_user, address, _nft_id, price, _total, expires).estimateGas({from: account, value: listing_fee},
                     async function (error, gasAmount) {
                         if (error) {
                             $(`#${index}tx`).html(error.toString());
                         } else {
-                            const tx = await main.methods.create_raffle(_max_per_user, address, _nft_id, price, _total).send({gas: gasAmount, from: account, value: listing_fee});
+                            const tx = await main.methods.create_raffle(_max_per_user, address, _nft_id, price, _total, expires).send({gas: gasAmount, from: account, value: listing_fee});
                             console.log(tx);
                             $(`#${index}tx`).html('Raffle created.');
                             await bootstrap();
@@ -177,6 +196,9 @@ size/units: <input type="text" id="${index}total" style="width: 80px" placeholde
                 const seller = r.seller;
                 const price = web3.utils.fromWei(r.price);
                 const amount = web3.utils.fromWei(r.amount);
+                let cancel = '';
+                if( seller == account )
+                    cancel = `<button href="#" onclick="cancel(${index}, ${id})" class="btn btn-sm badge rounded-pill bg-danger">Cancel</button>`;
                 html += `
                     <li class="list-group-item"> #${id}:
                     NFT: ${nft.slice(-4)}, id: ${nft_id},
@@ -184,8 +206,9 @@ size/units: <input type="text" id="${index}total" style="width: 80px" placeholde
                     Seller: ${seller.slice(-4)}, Price: ${price} ETH,
                     Collected: ${amount} CRO, Total: ${total},
                     max per user: ${max_per_user}
-                    <button onclick="buy(1,${index},${id}); return false;" class="btn btn-sm badge rounded-pill bg-primary">Buy One</button>
-                    <button href="#" onclick="users(${index}, ${id}); return false;" class="btn btn-sm badge rounded-pill bg-secondary">Users</button>
+                    <button onclick="buy(1,${index},${id})" class="btn btn-sm badge rounded-pill bg-primary">Buy One</button>
+                    <button href="#" onclick="users(${index}, ${id})" class="btn btn-sm badge rounded-pill bg-secondary">Users</button>
+                    ${cancel}
                     <div id="users${index}${id}"></div>
                     </li>`;
             }
@@ -262,6 +285,24 @@ size/units: <input type="text" id="${index}total" style="width: 80px" placeholde
                 html.push(`${i}=${users[i]}`);
             }
             $(`#users${index}${raffle_id}`).html( html.join(', ') );
+        }
+        async function cancel(index, raffle_id){
+            if( ! confirm(`Are you sure that you want to cancel this raffle?`) ){
+                return;
+            }
+            try {
+                await main.methods.cancel(raffle_id).estimateGas({from: account},
+                    async function (error, gasAmount) {
+                        if (error) {
+                            alert(error.toString());
+                        } else {
+                            await main.methods.cancel(raffle_id).send({gas: gasAmount, from: account});
+                            await bootstrap();
+                        }
+                    });
+            } catch (e) {
+                alert(e.toString());
+            }
         }
 
     </script>

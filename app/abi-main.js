@@ -1,1 +1,1023 @@
-const abi_main = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"raffle_id","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"users","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"total","type":"uint256"}],"name":"Buy","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"_max_per_user","type":"uint256"},{"indexed":false,"internalType":"address","name":"_nft","type":"address"},{"indexed":false,"internalType":"uint256","name":"_nft_id","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"_price","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"_total","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"index","type":"uint256"}],"name":"Create_Raffle","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"raffle_id","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"fee","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"royalties","type":"uint256"},{"indexed":false,"internalType":"address","name":"winner","type":"address"},{"indexed":false,"internalType":"uint256","name":"number","type":"uint256"}],"name":"Trigger","type":"event"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"all_nft","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256","name":"raffle_id","type":"uint256"}],"name":"buy","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"uint256","name":"raffle_id","type":"uint256"}],"name":"cancel","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_max_per_user","type":"uint256"},{"internalType":"address","name":"_nft","type":"address"},{"internalType":"uint256","name":"_nft_id","type":"uint256"},{"internalType":"uint256","name":"_price","type":"uint256"},{"internalType":"uint256","name":"_total","type":"uint256"}],"name":"create_raffle","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[],"name":"getActiveRaffles","outputs":[{"components":[{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"enum Main.STATUS","name":"status","type":"uint8"},{"internalType":"uint256","name":"max_per_user","type":"uint256"},{"internalType":"uint256","name":"total","type":"uint256"},{"internalType":"address","name":"nft","type":"address"},{"internalType":"uint256","name":"nft_id","type":"uint256"},{"internalType":"address","name":"winner","type":"address"},{"internalType":"address[]","name":"users","type":"address[]"},{"internalType":"uint256","name":"users_length","type":"uint256"},{"internalType":"address","name":"seller","type":"address"},{"internalType":"uint256","name":"price","type":"uint256"},{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256","name":"timestamp_soldout","type":"uint256"}],"internalType":"struct Main.Raffle[]","name":"","type":"tuple[]"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getAllNnft","outputs":[{"internalType":"address[]","name":"","type":"address[]"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getCancelledRaffles","outputs":[{"components":[{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"enum Main.STATUS","name":"status","type":"uint8"},{"internalType":"uint256","name":"max_per_user","type":"uint256"},{"internalType":"uint256","name":"total","type":"uint256"},{"internalType":"address","name":"nft","type":"address"},{"internalType":"uint256","name":"nft_id","type":"uint256"},{"internalType":"address","name":"winner","type":"address"},{"internalType":"address[]","name":"users","type":"address[]"},{"internalType":"uint256","name":"users_length","type":"uint256"},{"internalType":"address","name":"seller","type":"address"},{"internalType":"uint256","name":"price","type":"uint256"},{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256","name":"timestamp_soldout","type":"uint256"}],"internalType":"struct Main.Raffle[]","name":"","type":"tuple[]"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getFinishedRaffles","outputs":[{"components":[{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"enum Main.STATUS","name":"status","type":"uint8"},{"internalType":"uint256","name":"max_per_user","type":"uint256"},{"internalType":"uint256","name":"total","type":"uint256"},{"internalType":"address","name":"nft","type":"address"},{"internalType":"uint256","name":"nft_id","type":"uint256"},{"internalType":"address","name":"winner","type":"address"},{"internalType":"address[]","name":"users","type":"address[]"},{"internalType":"uint256","name":"users_length","type":"uint256"},{"internalType":"address","name":"seller","type":"address"},{"internalType":"uint256","name":"price","type":"uint256"},{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256","name":"timestamp_soldout","type":"uint256"}],"internalType":"struct Main.Raffle[]","name":"","type":"tuple[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"enum Main.STATUS","name":"s","type":"uint8"}],"name":"getRafflesByStatus","outputs":[{"components":[{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"enum Main.STATUS","name":"status","type":"uint8"},{"internalType":"uint256","name":"max_per_user","type":"uint256"},{"internalType":"uint256","name":"total","type":"uint256"},{"internalType":"address","name":"nft","type":"address"},{"internalType":"uint256","name":"nft_id","type":"uint256"},{"internalType":"address","name":"winner","type":"address"},{"internalType":"address[]","name":"users","type":"address[]"},{"internalType":"uint256","name":"users_length","type":"uint256"},{"internalType":"address","name":"seller","type":"address"},{"internalType":"uint256","name":"price","type":"uint256"},{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256","name":"timestamp_soldout","type":"uint256"}],"internalType":"struct Main.Raffle[]","name":"","type":"tuple[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"id","type":"uint256"}],"name":"getUsersByRaffleId","outputs":[{"internalType":"address[]","name":"","type":"address[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"nft","type":"address"},{"internalType":"uint256","name":"fee","type":"uint256"},{"internalType":"address","name":"royalties_recipient","type":"address"},{"internalType":"uint256","name":"royalties","type":"uint256"},{"internalType":"uint256","name":"listing_fee","type":"uint256"},{"internalType":"address","name":"listing_fee_recipient","type":"address"},{"internalType":"enum Main.STATUS","name":"status","type":"uint8"},{"internalType":"string","name":"name","type":"string"},{"internalType":"string","name":"twitter","type":"string"},{"internalType":"string","name":"tg","type":"string"}],"name":"manage_nft","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"moreRand","outputs":[{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"nfts","outputs":[{"internalType":"enum Main.STATUS","name":"status","type":"uint8"},{"internalType":"uint256","name":"fee","type":"uint256"},{"internalType":"uint256","name":"royalties","type":"uint256"},{"internalType":"address","name":"royalties_recipient","type":"address"},{"internalType":"uint256","name":"listing_fee","type":"uint256"},{"internalType":"address","name":"listing_fee_recipient","type":"address"},{"internalType":"string","name":"name","type":"string"},{"internalType":"string","name":"twitter","type":"string"},{"internalType":"string","name":"tg","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"address","name":"","type":"address"},{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"bytes","name":"","type":"bytes"}],"name":"onERC721Received","outputs":[{"internalType":"bytes4","name":"","type":"bytes4"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"raffles","outputs":[{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"enum Main.STATUS","name":"status","type":"uint8"},{"internalType":"uint256","name":"max_per_user","type":"uint256"},{"internalType":"uint256","name":"total","type":"uint256"},{"internalType":"address","name":"nft","type":"address"},{"internalType":"uint256","name":"nft_id","type":"uint256"},{"internalType":"address","name":"winner","type":"address"},{"internalType":"uint256","name":"users_length","type":"uint256"},{"internalType":"address","name":"seller","type":"address"},{"internalType":"uint256","name":"price","type":"uint256"},{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256","name":"timestamp_soldout","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"a","type":"address"},{"internalType":"address","name":"b","type":"address"},{"internalType":"address","name":"c","type":"address"}],"name":"setFeeRecipient","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"}];
+const abi_main = [
+    {
+        "inputs": [],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "raffle_id",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "value",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "users",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "total",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "ticket",
+                "type": "uint256"
+            }
+        ],
+        "name": "Buy",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "_max_per_user",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "_nft",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "_nft_id",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "_price",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "_total",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "index",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "endtime",
+                "type": "uint256"
+            }
+        ],
+        "name": "Create_Raffle",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "previousOwner",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "newOwner",
+                "type": "address"
+            }
+        ],
+        "name": "OwnershipTransferred",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "user",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "value",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "paid",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "total",
+                "type": "uint256"
+            }
+        ],
+        "name": "Refund",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "raffle_id",
+                "type": "uint256"
+            }
+        ],
+        "name": "Revert",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "raffle_id",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "fee",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "royalties",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "winner",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "number",
+                "type": "uint256"
+            }
+        ],
+        "name": "Trigger",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "user",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "listing_fee",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "fee",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "caller_fee",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "collectFee",
+                "type": "uint256"
+            }
+        ],
+        "name": "collectFee",
+        "type": "event"
+    },
+    {
+        "inputs": [],
+        "name": "_collectFee",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "name": "all_nft",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "amount_fee_from_expired",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "raffle_id",
+                "type": "uint256"
+            }
+        ],
+        "name": "buy",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "raffle_id",
+                "type": "uint256"
+            }
+        ],
+        "name": "cancel",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "collect_fee_from_expired",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_max_per_user",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "_nft",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_nft_id",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_price",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_total",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_endtime",
+                "type": "uint256"
+            }
+        ],
+        "name": "create_raffle",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getActiveRaffles",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "id",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "enum Main.STATUS",
+                        "name": "status",
+                        "type": "uint8"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "max_per_user",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "total",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "nft",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "nft_id",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "winner",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address[]",
+                        "name": "users",
+                        "type": "address[]"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "users_length",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "seller",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "price",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "amount",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "endtime",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct Main.Raffle[]",
+                "name": "",
+                "type": "tuple[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getAllNnft",
+        "outputs": [
+            {
+                "internalType": "address[]",
+                "name": "",
+                "type": "address[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getCancelledRaffles",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "id",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "enum Main.STATUS",
+                        "name": "status",
+                        "type": "uint8"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "max_per_user",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "total",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "nft",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "nft_id",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "winner",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address[]",
+                        "name": "users",
+                        "type": "address[]"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "users_length",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "seller",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "price",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "amount",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "endtime",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct Main.Raffle[]",
+                "name": "",
+                "type": "tuple[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getFinishedRaffles",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "id",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "enum Main.STATUS",
+                        "name": "status",
+                        "type": "uint8"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "max_per_user",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "total",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "nft",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "nft_id",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "winner",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address[]",
+                        "name": "users",
+                        "type": "address[]"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "users_length",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "seller",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "price",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "amount",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "endtime",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct Main.Raffle[]",
+                "name": "",
+                "type": "tuple[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "enum Main.STATUS",
+                "name": "s",
+                "type": "uint8"
+            }
+        ],
+        "name": "getRafflesByStatus",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "id",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "enum Main.STATUS",
+                        "name": "status",
+                        "type": "uint8"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "max_per_user",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "total",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "nft",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "nft_id",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "winner",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address[]",
+                        "name": "users",
+                        "type": "address[]"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "users_length",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "seller",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "price",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "amount",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "endtime",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct Main.Raffle[]",
+                "name": "",
+                "type": "tuple[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "id",
+                "type": "uint256"
+            }
+        ],
+        "name": "getUsersByRaffleId",
+        "outputs": [
+            {
+                "internalType": "address[]",
+                "name": "",
+                "type": "address[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "nft",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "fee",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "royalties_recipient",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "royalties",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "listing_fee",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "listing_fee_recipient",
+                "type": "address"
+            },
+            {
+                "internalType": "enum Main.STATUS",
+                "name": "status",
+                "type": "uint8"
+            },
+            {
+                "internalType": "string",
+                "name": "name",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "twitter",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "tg",
+                "type": "string"
+            }
+        ],
+        "name": "manage_nft",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "moreRand",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "nfts",
+        "outputs": [
+            {
+                "internalType": "enum Main.STATUS",
+                "name": "status",
+                "type": "uint8"
+            },
+            {
+                "internalType": "uint256",
+                "name": "fee",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "royalties",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "royalties_recipient",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "listing_fee",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "listing_fee_recipient",
+                "type": "address"
+            },
+            {
+                "internalType": "string",
+                "name": "name",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "twitter",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "tg",
+                "type": "string"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            },
+            {
+                "internalType": "bytes",
+                "name": "",
+                "type": "bytes"
+            }
+        ],
+        "name": "onERC721Received",
+        "outputs": [
+            {
+                "internalType": "bytes4",
+                "name": "",
+                "type": "bytes4"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "name": "raffles",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "id",
+                "type": "uint256"
+            },
+            {
+                "internalType": "enum Main.STATUS",
+                "name": "status",
+                "type": "uint8"
+            },
+            {
+                "internalType": "uint256",
+                "name": "max_per_user",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "total",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "nft",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "nft_id",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "winner",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "users_length",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "seller",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "price",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "endtime",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "renounceOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_fee",
+                "type": "uint256"
+            }
+        ],
+        "name": "setCallerFee",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "treasure",
+                "type": "address"
+            }
+        ],
+        "name": "setFeeRecipient",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "newOwner",
+                "type": "address"
+            }
+        ],
+        "name": "transferOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+];

@@ -12,8 +12,8 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/3.0.0-rc.5/web3.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="abi-nft.js"></script>
-    <script src="abi-main.js?v1"></script>
+    <script src="abi-nft.js?v3"></script>
+    <script src="abi-main.js?v3"></script>
 
     <script>
         // web3 functions to operate on blockchain (connected to metamask)
@@ -23,12 +23,16 @@
         let account;
 
         // contract object to make calls
-        let contract, nft;
+        let contract = '0x4ddfB56bb1e4cAac4Eb8EdA0e146ED71866261A0', main;
 
         let listing_fee;
 
         async function accountLoad() {
             if (window.ethereum) {
+                window.ethereum.on('chainChanged', chainId => {
+                    console.log(`chainId: ${chainId}`);
+                    bootstrap();
+                });
                 const r = await window.ethereum.request({method: 'eth_requestAccounts'});
                 web3 = new Web3(window.ethereum);
                 account = r[0];
@@ -37,158 +41,36 @@
             return false;
         }
 
-        async function main() {
+        async function bootstrap() {
             const enabled = await accountLoad();
             if (enabled) {
                 $('#account').val(account);
-                $('#royalties_recipient').val(account);
-                $('#listing_fee_recipient').val(account);
                 initContract();
+                // getAllNnft();
             } else {
-                $('#ethEnabled').html('no')
+                alert(`Error: install metamask.`);
             }
         }
 
         async function initContract() {
-            contract = new web3.eth.Contract(abi_main, $('#contract').val());
-            nft = new web3.eth.Contract(abi_nft, $('#nft').val());
-            $('#_nft').val($('#nft').val());
+            main = new web3.eth.Contract(abi_main, contract);
             const blockNumber = await web3.eth.getBlockNumber();
             $('#blockNumber').html('Block: ' + blockNumber);
 
             const balance_wei = (await web3.eth.getBalance(account)).toString();
             const balance = web3.utils.fromWei(balance_wei);
-            $('#balance').html('ETH: ' + balance);
+            $('#balance').html('My Balance: ' + balance);
 
-            const balanceOfContract_wei = (await web3.eth.getBalance(contract._address)).toString();
+            const balanceOfContract_wei = (await web3.eth.getBalance(contract)).toString();
             const balanceOfContract = web3.utils.fromWei(balanceOfContract_wei);
-            $('#balanceOfContract').html('ETH: ' + balanceOfContract);
+            $('#balanceOfContract').html('Balance of Contract: ' + balanceOfContract);
 
-            const balance_nft = (await nft.methods.balanceOf(account).call()).toString();
-            $('#balance_nft').html('NFT: ' + balance_nft);
+            $('#royalties_recipient').val(account);
+            $('#listing_fee_recipient').val(account);
 
-            const isApprovedForAll = (await nft.methods.isApprovedForAll(account, contract._address).call());
 
-            const approve_info = isApprovedForAll ? 'IS approved.' : 'NOT approved';
-            $('#create_raffle').prop('disabled', !isApprovedForAll);
-
-            $('#approval').html(`isApprovedForAll: ${approve_info}`);
-
-            const nft_contract_status = await contract.methods.nfts(nft._address).call();
-            listing_fee = nft_contract_status.listing_fee;
-            const nft_status = `status: ${nft_contract_status.status}, fee: ${nft_contract_status.fee}%, listing_fee: ${listing_fee/1e18}`;
-            $('#nft_status').html(nft_status);
-            console.log('nft_contract_status', nft_contract_status);
-
-            await nftListMyTokens();
-
-            await getActiveRaffles();
-            await getFinishedRaffles();
         }
 
-        async function nftListMyTokens() {
-            const balanceOf = await nft.methods.balanceOf(account).call();
-            console.log('balanceOf', balanceOf);
-            $('#_nft_id').html('');
-            let html;
-            for (let i = 0; i < balanceOf; i++) {
-                const token = await nft.methods.tokenOfOwnerByIndex(account, i).call();
-                html += `<option value=${token}> ${token} </option>`;
-            }
-            $('#_nft_id').html(html);
-        }
-
-        async function getActiveRaffles() {
-            const list = await contract.methods.getActiveRaffles().call();
-            let html = '';
-            for( let i = 0 ; i < list.length ; i ++ ){
-                const r = list[i];
-                const id = r.id;
-                const max_per_user = r.max_per_user;
-                const total = r.total;
-                const nft = r.nft;
-                const nft_id = r.nft_id;
-                // const users = r.users;
-                const users_length = r.users_length;
-                const seller = r.seller;
-                const price = web3.utils.fromWei(r.price);
-                const amount = web3.utils.fromWei(r.amount);
-                html += `
-                    <li class="list-group-item"> #${id}:
-                    NFT: ${nft.slice(-4)}, id: ${nft_id},
-                    Users (${users_length}): ,
-                    Seller: ${seller.slice(-4)}, Price: ${price} ETH,
-                    Collected: ${amount} ETH, Total: ${total},
-                    max per user: ${max_per_user}
-                    <a href="#" onclick="buy(1,${id}); return false;">Buy One</a>
-                    <a href="#" onclick="users(${id}); return false;">Users</a>
-                    <div id="users${id}"></div>
-                    </li>`;
-            }
-            $('#active_raffles').html(html);
-        }
-
-        async function getFinishedRaffles() {
-            const list = await contract.methods.getFinishedRaffles().call();
-            let html = '';
-            for( let i = 0 ; i < list.length ; i ++ ){
-                const r = list[i];
-                const id = r.id;
-                const max_per_user = r.max_per_user;
-                const total = r.total;
-                const nft = r.nft;
-                const nft_id = r.nft_id;
-                const winner = r.winner;
-                const users_length = r.users_length;
-                const seller = r.seller;
-                const price = web3.utils.fromWei(r.price);
-                const amount = web3.utils.fromWei(r.amount);
-                html += `
-                    <li class="list-group-item"> #${id}:
-                    NFT: ${nft.slice(-4)}, id: ${nft_id},
-                    Users (${users_length}): ,
-                    Seller: ${seller.slice(-4)}, Price: ${price} ETH,
-                    Collected: ${amount} ETH, Total: ${total},
-                    winner: ${winner.slice(-4)}
-                    <a href="#" onclick="users(${id}); return false;">Users</a>
-                    <div id="users${id}"></div>
-                    </li>`;
-            }
-            $('#finished_raffles').html(html);
-        }
-
-        async function mint() {
-            try {
-                await nft.methods.mint().estimateGas({from: account},
-                    async function (error, gasAmount) {
-                        if (error) {
-                            alert(error.toString());
-                        } else {
-                            await nft.methods.mint().send({from: account});
-                            await main();
-                        }
-                    });
-            } catch (e) {
-                alert(e.toString());
-            }
-        }
-
-        async function approve() {
-            const contract = $('#contract').val();
-            try {
-                await nft.methods.setApprovalForAll(contract, true).estimateGas({from: account},
-                    async function (error, gasAmount) {
-                        if (error) {
-                            alert(error.toString());
-                        } else {
-                            await nft.methods.setApprovalForAll(contract, true).send({from: account});
-                            await main();
-                        }
-                    });
-            } catch (e) {
-                alert(e.toString());
-            }
-        }
 
         async function manage_nft() {
             const mange_nft_nft = $('#mange_nft_nft').val();
@@ -198,186 +80,91 @@
             const _listing_fee = $('#listing_fee').val();
             const listing_fee = web3.utils.toWei(_listing_fee);
             const listing_fee_recipient = $('#listing_fee_recipient').val();
-            const manage_nft_status = $('#manage_nft_status').val();
+            const manage_nft_name = $('#manage_nft_name').val();
+            const manage_nft_twitter = $('#manage_nft_twitter').val();
+            const manage_nft_tg = $('#manage_nft_tg').val();
             try {
-                await contract.methods.manage_nft(mange_nft_nft, mange_nft_fee, royalties_recipient, royalties, listing_fee, listing_fee_recipient, manage_nft_status).estimateGas({from: account},
+                await contract.methods.manage_nft(mange_nft_nft, mange_nft_fee, royalties_recipient,
+                    royalties, listing_fee, listing_fee_recipient, '1',
+                    manage_nft_name,manage_nft_twitter,manage_nft_tg).estimateGas({from: account},
                     async function (error, gasAmount) {
                         if (error) {
                             alert(error.toString());
                         } else {
-                            await contract.methods.manage_nft(mange_nft_nft, mange_nft_fee, royalties_recipient, royalties, listing_fee, listing_fee_recipient, manage_nft_status).send({from: account});
-                            await main();
+                            await contract.methods.manage_nft(mange_nft_nft, mange_nft_fee, royalties_recipient,
+                                royalties, listing_fee, listing_fee_recipient, '1',
+                                manage_nft_name,manage_nft_twitter,manage_nft_tg).send({from: account, gas: gasAmount});
+                            await bootstrap();
                         }
                     });
             } catch (e) {
                 alert(e.toString());
             }
-        }
-        async function create_raffle() {
-            const _max_per_user = $('#_max_per_user').val();
-            const _nft = $('#_nft').val();
-            const _nft_id = $('#_nft_id').val();
-            const _price = $('#_price').val();
-            const _total = $('#_total').val();
-            const price = web3.utils.toWei(_price);
-            try {
-                await contract.methods.create_raffle(_max_per_user, _nft, _nft_id, price, _total).estimateGas({from: account, value: listing_fee},
-                    async function (error, gasAmount) {
-                        if (error) {
-                            alert(error.toString());
-                        } else {
-                            await contract.methods.create_raffle(_max_per_user, _nft, _nft_id, price, _total).send({from: account, value: listing_fee});
-                            await main();
-                        }
-                    });
-            } catch (e) {
-                alert(e.toString());
-            }
-        }
-        async function buy(amount, raffle_id){
-            const r = await contract.methods.raffles(raffle_id).call();
-            console.log(r);
-            const max_per_user = r.max_per_user;
-            const total = r.total; // 3
-            const sold = r.users_length; // 2
-            const left = total - sold; // 1
-            console.log(`total=${total}, sold=${sold}, left=${left}, amount=${amount}`);
-            if( amount > left ){
-                alert(`Error: only left ${left} to be bought. You trying to buy ${amount}. Lower your order.`);
-                return;
-            }
-            const price = r.price;
-            if( amount > max_per_user ){
-                alert(`Error: max per user is ${max_per_user}.`);
-                return;
-            }
-            try {
-                const valueToPay = price * amount;
-                await contract.methods.buy(amount, raffle_id).estimateGas({from: account, value: valueToPay},
-                    async function (error, gasAmount) {
-                        if (error) {
-                            alert(error.toString());
-                        } else {
-                            await contract.methods.buy(amount, raffle_id).send({from: account, value: valueToPay});
-                            await main();
-                        }
-                    });
-            } catch (e) {
-                alert(e.toString());
-            }
-        }
-        async function users(raffle_id){
-            const users = await contract.methods.getUsersByRaffleId(raffle_id).call();
-            let html = '';
-            for( let i = 0 ; i < users.length; i++ ){
-                html += ` ${i}=${users[i]} `;
-            }
-            $(`#users${raffle_id}`).html(html);
         }
 
     </script>
 
 </head>
-<body onload="main()">
+<body onload="bootstrap()">
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <span class="navbar-brand mb-0 h1">Raffle NFT</span>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
             <li class="nav-item active">
-                <a class="nav-link" href="#" id="blockNumber">blockNumber</a>
+                <a class="nav-link" href="#" id="blockNumber">...</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#" id="balance">(Balance)</a>
+                <a class="nav-link" href="#" id="balance">...</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#" id="balance_nft">(NFT's)</a>
+                <a class="nav-link" href="#" id="balanceOfContract">...</a>
             </li>
         </ul>
     </div>
-    <span class="navbar-brand mb-0 ">Raffle NFT Marketplace</span>
+    <span class="navbar-brand mb-0 ">Admin Panel</span>
 </nav>
 
 <div class="container">
     <div class="row align-items-start p-3">
         <div class="col">
+
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title">Contract and detected Account</h5>
-                </div>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">
-                            main <input id="contract" size="55" type="text"
-                                        onblur="main()"
-                                        value="0x86eE84553EC2030B7593632D540E85D8DE4Bc8ee"/>
-                        </li>
-                        <li class="list-group-item">
-                            nft <input id="nft" size="55" type="text"
-                                       onblur="main()"
-                                       value="0x3124C5403e74fa643BAbe040B266cf5BFf1229c9"/>
-                        </li>
-                        <li class="list-group-item">
-                            Wallet <input id="account" size="55" type="text"/>
-                        </li>
-                        <li class="list-group-item">
-                            balance <span id="balanceOfContract">-</span>
-                        </li>
-                        <li class="list-group-item">
-                            Raffle's <span id="staked">-</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            <br/>
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title">Step 1: Mint NFT</h5>
-                </div>
-                <div class="card-body">
-                    For testing, mint 1 nft:
-                    <input onclick="mint()" type="button" value="Mint"/>
-                </div>
-            </div>
-            <br/>
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title">Step 2: Approve NFT</h5>
-                </div>
-                <div class="card-body">
-                    approve for all:
-                    <input onclick="approve()" type="button" value="Approve"/>
-                    <span class="text-muted" id="approval">Checking approval status...</span>
-                </div>
-            </div>
-        </div>
-        <div class="col">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title">Step 3: Admin add nft to Raffle</h5>
+                    <div class="row">
+                        <div class="col-11">
+                            <h5 class="card-title">Whitelist NFT</h5>
+                        </div>
+                        <div class="col-1" style="text-align: right">
+                            <button onclick="manage_nft()" type="button"
+                                   id="manage_nft"
+                            class="btn btn-sm btn-primary">Save</button>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body">
 
 
                     <div class="form-group row">
                         <label for="mange_nft_nft" class="col-sm col-form-label">
-                            nft:
+                            nft contract address:
                         </label>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control-plaintext" id="mange_nft_nft" value="0x3124C5403e74fa643BAbe040B266cf5BFf1229c9">
+                            <input type="text" class="form-control-plaintext" id="mange_nft_nft"
+                                   value="0x3124C5403e74fa643BAbe040B266cf5BFf1229c9">
                         </div>
                     </div>
                     <div class="form-group row">
                         <label for="mange_nft_fee" class="col-sm col-form-label">
-                            fee:
+                            fee on each buy:
                         </label>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control-plaintext" id="mange_nft_fee" value="10">
+                            <input type="text" class="form-control-plaintext" id="mange_nft_fee" placeholder="10">
                         </div>
                     </div>
                     <div class="form-group row">
                         <label for="royalties_recipient" class="col-sm col-form-label">
-                            royalties to:
+                            send royalties to:
                         </label>
                         <div class="col-sm-8">
                             <input type="text" class="form-control-plaintext" id="royalties_recipient" value="">
@@ -385,148 +172,73 @@
                     </div>
                     <div class="form-group row">
                         <label for="royalties" class="col-sm col-form-label">
-                            royalties:
+                            royalties % on each buy:
                         </label>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control-plaintext" id="royalties" value="2">
+                            <input type="text" class="form-control-plaintext" id="royalties" placeholder="20">
                         </div>
                     </div>
                     <div class="form-group row">
                         <label for="listing_fee" class="col-sm col-form-label">
-                            listing fee (CRO):
+                            listing fee (CRO/decimal):
                         </label>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control-plaintext" id="listing_fee" value="25">
+                            <input type="text" class="form-control-plaintext" id="listing_fee" placeholder="25">
                         </div>
                     </div>
                     <div class="form-group row">
                         <label for="listing_fee_recipient" class="col-sm col-form-label">
-                            listing fee recipient:
+                            send listing fee to:
                         </label>
                         <div class="col-sm-8">
                             <input type="text" class="form-control-plaintext" id="listing_fee_recipient" value="">
                         </div>
                     </div>
+
                     <div class="form-group row">
-                        <label for="manage_nft_status" class="col-sm col-form-label">
-                            status:
+                        <label for="manage_nft_name" class="col-sm col-form-label">
+                            name:
                         </label>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control-plaintext" id="manage_nft_status" value="1">
-                        </div>
-                    </div>
-
-
-                </div>
-                <div class="card-footer">
-                    <input onclick="manage_nft()" type="button" id="manage_nft" value="manage_nft"/>
-                    <span id="nft_status"></span>
-                </div>
-            </div>
-
-            <br/>
-
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title">Step 4: Create a NFT Raffle</h5>
-                </div>
-                <div class="card-body">
-
-
-                    <div class="form-group row">
-                        <label for="_max_per_user" class="col-sm col-form-label">
-                            Max buy per user:
-                        </label>
-                        <div class="col-sm-7">
-                            <input type="text" class="form-control-plaintext" id="_max_per_user" value="3">
+                            <input type="text" class="form-control-plaintext" id="manage_nft_name" value=""
+                                   placeholder="TestNFT">
                         </div>
                     </div>
 
                     <div class="form-group row">
-                        <label for="_nft" class="col-sm col-form-label">
-                            NFT contract:
+                        <label for="manage_nft_twitter" class="col-sm col-form-label">
+                            twitter:
                         </label>
-                        <div class="col-sm-7">
-                            <input type="text" class="form-control-plaintext " id="_nft" value="">
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control-plaintext" id="manage_nft_twitter" value=""
+                                   placeholder="twitter.com/TestNFT">
                         </div>
                     </div>
 
                     <div class="form-group row">
-                        <label for="_nft_id" class="col-sm col-form-label">
-                            NFT id (your nft):
+                        <label for="manage_nft_tg" class="col-sm col-form-label">
+                            telegram:
                         </label>
-                        <div class="col-sm-7">
-
-                            <select class="form-control-plaintext" id="_nft_id">
-                            </select>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control-plaintext" id="manage_nft_tg" value=""
+                                   placeholder="t.me/TestNFT">
                         </div>
                     </div>
 
-                    <div class="form-group row">
-                        <label for="_price" class="col-sm col-form-label">
-                            Price per raffle (decimal):
-                        </label>
-                        <div class="col-sm-7">
-                            <input type="text" class="form-control-plaintext" id="_price" value="0.1">
-                        </div>
-                    </div>
-
-                    <div class="form-group row">
-                        <label for="_total" class="col-sm col-form-label">
-                            Raffle size:
-                        </label>
-                        <div class="col-sm-7">
-                            <input type="text" class="form-control-plaintext" id="_total" value="3">
-                        </div>
-                    </div>
-
-
-                </div>
-                <div class="card-footer">
-                    <input onclick="create_raffle()" type="button" disabled id="create_raffle" value="create_raffle"/>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <div class="row align-items-start p-3   ">
-        <div class="col">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title">Step 5: buy a raffle ticket from an active raffle:</h5>
-                </div>
-                <div class="card-body">
-
-                    <ul class="list-group list-group-flush" id="active_raffles">
-                        <li class="list-group-item">
-                            Wait...
-                        </li>
-                    </ul>
                 </div>
             </div>
         </div>
     </div>
-    <div class="row align-items-start p-3   ">
-        <div class="col">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title">Step 6: see sold out raffles and winner:</h5>
-                </div>
-                <div class="card-body">
 
-                    <ul class="list-group list-group-flush" id="finished_raffles">
-                        <li class="list-group-item">
-                            Aguarde...
-                        </li>
-                    </ul>
-                </div>
+    <hr/>
+    <div class="row align-items-start p-3">
+        <div class="col">
+            <div id="main">
+                Wait...
             </div>
         </div>
     </div>
 </div>
-
-<div id="tx"></div>
 
 </body>
 </html>

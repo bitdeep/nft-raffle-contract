@@ -68,7 +68,8 @@ describe("Main", function () {
                     console.log(str);
             }
 
-            await main.create_raffle(_max_per_user, _nft, '0', _price, _total, {value: listing_fee});
+            const endtime = '3600';
+            await main.create_raffle(_max_per_user, _nft, '0', _price, _total, endtime, {value: listing_fee});
 
             const raffle_id = '0';
             await main.connect(USER1).buy('1',raffle_id, {value: _price});
