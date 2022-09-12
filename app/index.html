@@ -105,20 +105,41 @@
                     </small>
                     `;
                 html += line;
-                html += addRaffleForm(index, address, NFT.listing_fee, isApprovedForAll);
+                html += await addRaffleForm(index, address, NFT.listing_fee, isApprovedForAll, nft);
                 html += await addRaffleList(index, address, nft);
                 html += await getFinishedRaffles(index, address, nft);
             }
             $('#main').html(html);
         }
 
-        function addRaffleForm(index, address, listing_fee, isApprovedForAll) {
+
+
+        async function nftListMyTokens(index, nft) {
+            try {
+                const balanceOf = await nft.methods.balanceOf(account).call();
+                console.log('balanceOf', balanceOf);
+                $('#_nft_id').html('');
+                let html = `<select id="${index}token_id" style="width: 120px">`;
+                for (let i = 0; i < balanceOf; i++) {
+                    const token = await nft.methods.tokenOfOwnerByIndex(account, i).call();
+                    html += `<option value=${token}> ${token} </option>`;
+                }
+                html += `</select>`;
+                return html;
+            }catch(e){
+                console.log('!tokenOfOwnerByIndex', e);
+                return `<input type="text" id="${index}token_id" style="width: 80px" placeholder="0" class="small" />`;
+            }
+        }
+
+        async function addRaffleForm(index, address, listing_fee, isApprovedForAll, nft) {
+            const select_token = await nftListMyTokens(index, nft);
             const approve_info = isApprovedForAll ? '' : 'disabled';
             let html = `<p><span class="badge bg-primary">Add raffle:</span>
 
 <button id="${index}approve" type="button" class="btn btn-sm badge rounded-pill bg-warning" onclick="approve(${index}, '${address}')">Approve</button>
 max buy: <input type="text" id="${index}max_per_user" style="width: 80px" placeholder="3" class="small"/>
-token id: <input type="text" id="${index}token_id" style="width: 80px" placeholder="0" class="small" />
+token id: ${select_token}
 price (in cro/decimal): <input type="text" id="${index}price" style="width: 80px" placeholder="10" class="small" />
 size/units: <input type="text" id="${index}total" style="width: 80px" placeholder="10" class="small" />
 expires in: <select id="${index}expires" style="width: 80px" placeholder="10" class="small" >
