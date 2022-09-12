@@ -23,7 +23,7 @@
         let account;
 
         // contract object to make calls
-        let contract = '0x4ddfB56bb1e4cAac4Eb8EdA0e146ED71866261A0', main;
+        let contract = '0x4E786332922099DbaBD1fb75cbEb914fa5557a6C', main;
 
         let listing_fee;
 
@@ -46,7 +46,7 @@
             if (enabled) {
                 $('#account').val(account);
                 initContract();
-                // getAllNnft();
+                getAllNnft();
             } else {
                 alert(`Error: install metamask.`);
             }
@@ -71,8 +71,32 @@
 
         }
 
+        function edit(index, address, fee, royalties_recipient,
+                          royalties, listing_fee, listing_fee_recipient,
+                          status, name, twitter, tg) {
 
-        async function manage_nft() {
+            $('#mange_nft_nft').val(address);
+            $('#mange_nft_fee').val(fee);
+            $('#royalties_recipient').val(royalties_recipient);
+            $('#royalties').val(royalties);
+            $('#listing_fee').val( listing_fee );
+            $('#listing_fee_recipient').val(listing_fee_recipient);
+            $('#manage_status').val(status);
+            $('#manage_nft_name').val(name);
+            $('#manage_nft_twitter').val(twitter);
+            $('#manage_nft_tg').val(tg);
+            $('#manage_nft').html('Change')
+        }
+
+        async function manage_nft(){
+            const type = $('#manage_nft').html();
+            if( type != 'Change' ){
+                add_nft();
+            }else{
+                edit_nft()
+            }
+        }
+        async function add_nft() {
             const mange_nft_nft = $('#mange_nft_nft').val();
             const mange_nft_fee = $('#mange_nft_fee').val();
             const royalties_recipient = $('#royalties_recipient').val();
@@ -84,22 +108,100 @@
             const manage_nft_twitter = $('#manage_nft_twitter').val();
             const manage_nft_tg = $('#manage_nft_tg').val();
             try {
-                await contract.methods.manage_nft(mange_nft_nft, mange_nft_fee, royalties_recipient,
+                await main.methods.add_nft(mange_nft_nft, mange_nft_fee, royalties_recipient,
                     royalties, listing_fee, listing_fee_recipient, '1',
-                    manage_nft_name,manage_nft_twitter,manage_nft_tg).estimateGas({from: account},
+                    manage_nft_name, manage_nft_twitter, manage_nft_tg).estimateGas({from: account},
                     async function (error, gasAmount) {
                         if (error) {
                             alert(error.toString());
                         } else {
-                            await contract.methods.manage_nft(mange_nft_nft, mange_nft_fee, royalties_recipient,
+                            await main.methods.add_nft(mange_nft_nft, mange_nft_fee, royalties_recipient,
                                 royalties, listing_fee, listing_fee_recipient, '1',
-                                manage_nft_name,manage_nft_twitter,manage_nft_tg).send({from: account, gas: gasAmount});
+                                manage_nft_name, manage_nft_twitter, manage_nft_tg).send({
+                                from: account,
+                                gas: gasAmount
+                            });
                             await bootstrap();
                         }
                     });
             } catch (e) {
                 alert(e.toString());
             }
+        }
+        async function edit_nft() {
+            const mange_nft_nft = $('#mange_nft_nft').val();
+            const mange_nft_fee = $('#mange_nft_fee').val();
+            const royalties_recipient = $('#royalties_recipient').val();
+            const royalties = $('#royalties').val();
+            const _listing_fee = $('#listing_fee').val();
+            const listing_fee = web3.utils.toWei(_listing_fee);
+            const listing_fee_recipient = $('#listing_fee_recipient').val();
+            const manage_nft_name = $('#manage_nft_name').val();
+            const manage_nft_twitter = $('#manage_nft_twitter').val();
+            const manage_nft_tg = $('#manage_nft_tg').val();
+            try {
+                await main.methods.edit_nft(mange_nft_nft, mange_nft_fee, royalties_recipient,
+                    royalties, listing_fee, listing_fee_recipient, '1',
+                    manage_nft_name, manage_nft_twitter, manage_nft_tg).estimateGas({from: account},
+                    async function (error, gasAmount) {
+                        if (error) {
+                            alert(error.toString());
+                        } else {
+                            await main.methods.edit_nft(mange_nft_nft, mange_nft_fee, royalties_recipient,
+                                royalties, listing_fee, listing_fee_recipient, '1',
+                                manage_nft_name, manage_nft_twitter, manage_nft_tg).send({
+                                from: account,
+                                gas: gasAmount
+                            });
+                            await bootstrap();
+                        }
+                    });
+            } catch (e) {
+                alert(e.toString());
+            }
+        }
+
+        async function getAllNnft() {
+            let list;
+            try {
+                list = await main.methods.getAllNnft().call();
+            } catch (e) {
+                alert(`Please: switch to Cronos mainnet.`);
+            }
+            let html = '';
+            for (let index in list) {
+                const address = list[index];
+                const NFT = await main.methods.nfts(address).call();
+                const nft = new web3.eth.Contract(abi_nft, address);
+                const fee = NFT.fee; //: "10"
+                const royalties_recipient = NFT.royalties_recipient; //: "0x10377a6d900f43D0b1aD699E99CfF6F1800aCD4C"
+                const royalties = NFT.royalties; //: "20"
+                const listing_fee = NFT.listing_fee / 1e18; //: "10000000000000000000"
+                const listing_fee_recipient = NFT.listing_fee_recipient; //: "0x10377a6d900f43D0b1aD699E99CfF6F1800aCD4C"
+                const status = NFT.status; //: "1"
+                const name = NFT.name; //: "TestNFT"
+                const tg = NFT.tg; //: "t.me/testnft"
+                const twitter = NFT.twitter; //: "twitter.com/testnft"
+
+                const line = `
+                    <h1>${name} (<a href="https://cronoscan.com/token/${address}#inventory" target="_blank">...${address.substr(address.length - 4)}</a>)</h1>
+                    <a href="${twitter}" class="badge bg-secondary">${twitter}</a>
+                    <a href="${tg}" class="badge bg-secondary">${tg}</a>
+                    <small>
+                    <i>
+                        buy fee: ${fee}%, listing_fee: ${listing_fee} CRO, royalties: ${royalties}% on each buy.
+                    </i>
+                    </small>
+
+                    <button type="button" class="btn btn-sm badge rounded-pill bg-primary"
+                    onclick="edit('${index}','${address}','${fee}','${royalties_recipient}',
+                                      '${royalties}','${listing_fee}','${listing_fee_recipient}',
+                                      '${status}','${name}','${twitter}','${tg}')">Edit</button>
+
+                    `;
+                html += line;
+            }
+            $('#main').html(html);
         }
 
     </script>
@@ -137,8 +239,9 @@
                         </div>
                         <div class="col-1" style="text-align: right">
                             <button onclick="manage_nft()" type="button"
-                                   id="manage_nft"
-                            class="btn btn-sm btn-primary">Save</button>
+                                    id="manage_nft"
+                                    class="btn btn-sm btn-primary">Save
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -222,6 +325,15 @@
                         <div class="col-sm-8">
                             <input type="text" class="form-control-plaintext" id="manage_nft_tg" value=""
                                    placeholder="t.me/TestNFT">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="manage_status" class="col-sm col-form-label">
+                            status:
+                        </label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control-plaintext" id="manage_status" value=""
+                                   placeholder="Ex: 1=ACTIVE,2=FINISHED">
                         </div>
                     </div>
 
