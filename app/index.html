@@ -66,23 +66,24 @@
             $('#balanceOfContract').html('Balance of Contract: ' + balanceOfContract);
 
         }
-        async function getAllNnft(){
+
+        async function getAllNnft() {
             let list;
             try {
                 list = await main.methods.getAllNnft().call();
-            }catch(e){
+            } catch (e) {
                 alert(`Please: switch to Cronos mainnet.`);
             }
             let html = '';
-            for( let index in list ){
+            for (let index in list) {
                 const address = list[index];
                 const NFT = await main.methods.nfts(address).call();
                 const nft = new web3.eth.Contract(abi_nft, address);
                 const status = NFT.status; //: "1"
-                if( status != 1 )
+                if (status != 1)
                     continue; // only active nft
                 const fee = NFT.fee; //: "10"
-                const listing_fee = NFT.listing_fee/1e18; //: "10000000000000000000"
+                const listing_fee = NFT.listing_fee / 1e18; //: "10000000000000000000"
                 const listing_fee_recipient = NFT.listing_fee_recipient; //: "0x10377a6d900f43D0b1aD699E99CfF6F1800aCD4C"
                 const name = NFT.name; //: "TestNFT"
                 const royalties = NFT.royalties; //: "20"
@@ -94,7 +95,7 @@
                 const isApprovedForAll = (await nft.methods.isApprovedForAll(account, contract).call());
 
                 const line = `
-                    <h1>${name} (<a href="https://cronoscan.com/token/${address}#inventory" target="_blank">...${address.substr(address.length-4)}</a>)</h1>
+                    <h1>${name} (<a href="https://cronoscan.com/token/${address}#inventory" target="_blank">...${address.substr(address.length - 4)}</a>)</h1>
                     <a href="${twitter}" class="badge bg-secondary">${twitter}</a>
                     <a href="${tg}" class="badge bg-secondary">${tg}</a>
                     <small>
@@ -105,12 +106,13 @@
                     `;
                 html += line;
                 html += addRaffleForm(index, address, NFT.listing_fee, isApprovedForAll);
-                html += await addRaffleList(index, address);
-                html += await getFinishedRaffles(index, address);
+                html += await addRaffleList(index, address, nft);
+                html += await getFinishedRaffles(index, address, nft);
             }
             $('#main').html(html);
         }
-        function addRaffleForm(index, address, listing_fee, isApprovedForAll){
+
+        function addRaffleForm(index, address, listing_fee, isApprovedForAll) {
             const approve_info = isApprovedForAll ? '' : 'disabled';
             let html = `<p><span class="badge bg-primary">Add raffle:</span>
 
@@ -154,24 +156,31 @@ expires in: <select id="${index}expires" style="width: 80px" placeholder="10" cl
             }
         }
 
-        async function create_raffle(index, address, listing_fee){
+        async function create_raffle(index, address, listing_fee) {
             const _max_per_user = $(`#${index}max_per_user`).val();
             const _nft_id = $(`#${index}token_id`).val();
             const _price = $(`#${index}price`).val();
             const _total = $(`#${index}total`).val();
             const expires = $(`#${index}expires`).val();
-            if( _max_per_user < 1 ) return alert('Invalid max per user.');
-            if( _nft_id === undefined ) return alert('Invalid nft id user.');
-            if( _price < 0.0001 ) return alert('Invalid price user.');
-            if( _total < 3 ) return alert('Invalid total.');
+            if (_max_per_user < 1) return alert('Invalid max per user.');
+            if (_nft_id === undefined) return alert('Invalid nft id user.');
+            if (_price < 0.0001) return alert('Invalid price user.');
+            if (_total < 3) return alert('Invalid total.');
             const price = web3.utils.toWei(_price);
             try {
-                await main.methods.create_raffle(_max_per_user, address, _nft_id, price, _total, expires).estimateGas({from: account, value: listing_fee},
+                await main.methods.create_raffle(_max_per_user, address, _nft_id, price, _total, expires).estimateGas({
+                        from: account,
+                        value: listing_fee
+                    },
                     async function (error, gasAmount) {
                         if (error) {
                             $(`#${index}tx`).html(error.toString());
                         } else {
-                            const tx = await main.methods.create_raffle(_max_per_user, address, _nft_id, price, _total, expires).send({gas: gasAmount, from: account, value: listing_fee});
+                            const tx = await main.methods.create_raffle(_max_per_user, address, _nft_id, price, _total, expires).send({
+                                gas: gasAmount,
+                                from: account,
+                                value: listing_fee
+                            });
                             console.log(tx);
                             $(`#${index}tx`).html('Raffle created.');
                             await bootstrap();
@@ -185,88 +194,136 @@ expires in: <select id="${index}expires" style="width: 80px" placeholder="10" cl
 
         const toHHMMSS = function (sec) {
             var sec_num = parseInt(sec, 10); // don't forget the second param
-            var hours   = Math.floor(sec_num / 3600);
+            var hours = Math.floor(sec_num / 3600);
             var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
             var seconds = sec_num - (hours * 3600) - (minutes * 60);
 
-            if (hours   < 10) {hours   = "0"+hours;}
-            if (minutes < 10) {minutes = "0"+minutes;}
-            if (seconds < 10) {seconds = "0"+seconds;}
-            return hours+':'+minutes+':'+seconds;
+            if (hours < 10) {
+                hours = "0" + hours;
+            }
+            if (minutes < 10) {
+                minutes = "0" + minutes;
+            }
+            if (seconds < 10) {
+                seconds = "0" + seconds;
+            }
+            return hours + ':' + minutes + ':' + seconds;
         }
 
-        async function addRaffleList(index, address){
+        async function addRaffleList(index, address, NFT) {
             const list = await main.methods.getActiveRaffles().call();
             let html = '<h6>Available Raffles on this contract</h6><ul>';
-            for( let i = 0 ; i < list.length ; i ++ ){
+            for (let i = 0; i < list.length; i++) {
                 const r = list[i];
                 const endtime = parseInt(r.endtime);
-                const now = new Date().getTime()/1000;
-                const ttl = endtime-now;
+                const now = new Date().getTime() / 1000;
+                const ttl = endtime - now;
                 const id = r.id;
                 const max_per_user = r.max_per_user;
                 const total = r.total;
                 const nft = r.nft;
-                if( nft != address )
+                if (nft != address)
                     continue;
                 const nft_id = r.nft_id;
-                // const users = r.users;
+                try {
+                    const tokenURI = await NFT.methods.tokenURI(nft_id).call();
+                    if (tokenURI) {
+                        fetch(tokenURI)
+                            .then((response) => response.json())
+                            .then( function(data){
+                                console.log('data', data);
+                                $(`#img${index}${i}`).html(`<img src="${data.image}" width="128"/>`);
+                            } );
+                    }
+                } catch (e) {
+                    console.log(e);
+                }
+                // console.log('tokenURI', tokenURI);
                 const users_length = r.users_length;
                 const seller = r.seller;
                 const price = web3.utils.fromWei(r.price);
                 const amount = web3.utils.fromWei(r.amount);
                 let cancel = '';
-                if( seller.toLowerCase() == account.toLowerCase() )
+                if (seller.toLowerCase() == account.toLowerCase())
                     cancel = `<button href="#" onclick="cancel(${index}, ${id})" class="btn btn-sm badge rounded-pill bg-danger">Cancel</button>`;
                 html += `
-                    <li class="list-group-item"> #${id}:
-                    NFT: ${nft.slice(-4)}, id: ${nft_id},
-                    Users (${users_length}): ,
-                    Seller: ${seller.slice(-4)}, Price: ${price} CRO,
-                    Ticket Sold: ${amount} CRO, Total: ${total},
-                    max per user: ${max_per_user},
-                    time left: ${toHHMMSS(ttl)}
-                    <button onclick="buy(1,${index},${id})" class="btn btn-sm badge rounded-pill bg-primary">Buy One</button>
-                    <button href="#" onclick="users(${index}, ${id})" class="btn btn-sm badge rounded-pill bg-secondary">Users</button>
-                    ${cancel}
-                    <div id="users${index}${id}"></div>
+                    <li class="list-group-item">
+                     <div class="row">
+                        <div class="col-2" id="img${index}${id}"></div>
+                        <div class="col-10">
+                             #${id}:
+                            NFT: ${nft.slice(-4)}, id: ${nft_id},
+                            Users (${users_length}): ,
+                            Seller: ${seller.slice(-4)}, Price: ${price} CRO,
+                            Collected: ${amount} CRO, Total: ${total},
+                            max per user: ${max_per_user},
+                            time left: ${toHHMMSS(ttl)}
+                            <button onclick="buy(1,${index},${id})" class="btn btn-sm badge rounded-pill bg-primary">Buy One</button>
+                            <button href="#" onclick="users(${index}, ${id})" class="btn btn-sm badge rounded-pill bg-secondary">Users</button>
+                            ${cancel}
+                            <div id="users${index}${id}"></div>
+                        </div>
+                    </div>
                     </li>`;
             }
             html += '</ul>';
             return html;
         }
 
-        async function getFinishedRaffles(index, address) {
+        async function getFinishedRaffles(index, address, NFT) {
             const list = await main.methods.getFinishedRaffles().call();
             let html = '<h6>Finished Raffles and winners</h6><ul>';
-            for( let i = 0 ; i < list.length ; i ++ ){
+            for (let i = 0; i < list.length; i++) {
                 const r = list[i];
                 const id = r.id;
                 const max_per_user = r.max_per_user;
                 const total = r.total;
                 const nft = r.nft;
+                if (nft != address)
+                    continue;
                 const nft_id = r.nft_id;
+                try {
+                    const tokenURI = await NFT.methods.tokenURI(nft_id).call();
+                    if (tokenURI) {
+                        fetch(tokenURI)
+                            .then((response) => response.json())
+                            .then( function(data){
+                                console.log('data', data);
+                                $(`#img${index}${i}`).html(`<img src="${data.image}" width="128"/>`);
+                            } );
+                    }
+                } catch (e) {
+                    console.log(e);
+                }
                 const winner = r.winner;
                 const users_length = r.users_length;
                 const seller = r.seller;
                 const price = web3.utils.fromWei(r.price);
                 const amount = web3.utils.fromWei(r.amount);
                 html += `
-                    <li class="list-group-item"> #${id}:
-                    NFT: ${nft.slice(-4)}, id: ${nft_id},
-                    Users (${users_length}): ,
-                    Seller: ${seller.slice(-4)}, Price: ${price} ETH,
-                    Collected: ${amount} ETH, Total: ${total},
-                    winner: ${winner.slice(-4)}
-                    <button href="#" onclick="users(${index}, ${id});" class="btn btn-sm badge rounded-pill bg-secondary">Users</button>
-                    <div id="users${index}${id}"></div>
+                    <li class="list-group-item">
+                    <div class="row">
+                        <div class="col-2" id="img${index}${i}">
+                            Loading...
+                        </div>
+                        <div class="col-10">
+                            #${id}:
+                            NFT: ${nft.slice(-4)}, id: ${nft_id},
+                            Users (${users_length}): ,
+                            Seller: ${seller.slice(-4)}, Price: ${price} CRO,
+                            Collected: ${amount} CRO, Total: ${total},
+                            winner: ${winner.slice(-4)}
+                            <button href="#" onclick="users(${index}, ${id});" class="btn btn-sm badge rounded-pill bg-secondary">Users</button>
+                            <div id="users${index}${id}"></div>
+                        </div>
+                    </div>
                     </li>`;
             }
             html += '</ul>';
             return html;
         }
 
-        async function buy(amount, index, raffle_id){
+        async function buy(amount, index, raffle_id) {
             const r = await main.methods.raffles(raffle_id).call();
             console.log(r);
             const max_per_user = r.max_per_user;
@@ -274,12 +331,12 @@ expires in: <select id="${index}expires" style="width: 80px" placeholder="10" cl
             const sold = r.users_length; // 2
             const left = total - sold; // 1
             console.log(`total=${total}, sold=${sold}, left=${left}, amount=${amount}`);
-            if( amount > left ){
+            if (amount > left) {
                 alert(`Error: only left ${left} to be bought. You trying to buy ${amount}. Lower your order.`);
                 return;
             }
             const price = r.price;
-            if( amount > max_per_user ){
+            if (amount > max_per_user) {
                 alert(`Error: max per user is ${max_per_user}.`);
                 return;
             }
@@ -290,7 +347,11 @@ expires in: <select id="${index}expires" style="width: 80px" placeholder="10" cl
                         if (error) {
                             alert(error.toString());
                         } else {
-                            await main.methods.buy(amount, raffle_id).send({gas: gasAmount, from: account, value: valueToPay});
+                            await main.methods.buy(amount, raffle_id).send({
+                                gas: gasAmount,
+                                from: account,
+                                value: valueToPay
+                            });
                             await bootstrap();
                         }
                     });
@@ -298,16 +359,18 @@ expires in: <select id="${index}expires" style="width: 80px" placeholder="10" cl
                 alert(e.toString());
             }
         }
-        async function users(index, raffle_id){
+
+        async function users(index, raffle_id) {
             const users = await main.methods.getUsersByRaffleId(raffle_id).call();
             let html = [];
-            for( let i = 0 ; i < users.length; i++ ){
+            for (let i = 0; i < users.length; i++) {
                 html.push(`${i}=${users[i]}`);
             }
-            $(`#users${index}${raffle_id}`).html( html.join(', ') );
+            $(`#users${index}${raffle_id}`).html(html.join(', '));
         }
-        async function cancel(index, raffle_id){
-            if( ! confirm(`Are you sure that you want to cancel this raffle?`) ){
+
+        async function cancel(index, raffle_id) {
+            if (!confirm(`Are you sure that you want to cancel this raffle?`)) {
                 return;
             }
             try {
