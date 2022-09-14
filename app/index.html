@@ -108,6 +108,7 @@
                 html += await addRaffleForm(index, address, NFT.listing_fee, isApprovedForAll, nft);
                 html += await addRaffleList(index, address, nft);
                 html += await getFinishedRaffles(index, address, nft);
+                html += await getExpiredRaffles(index, address, nft);
             }
             $('#main').html(html);
         }
@@ -246,18 +247,17 @@ expires in: <select id="${index}expires" style="width: 80px" placeholder="10" cl
                 if (nft != address)
                     continue;
                 const nft_id = r.nft_id;
-                try {
+                setTimeout( async function(){
                     const tokenURI = await NFT.methods.tokenURI(nft_id).call();
                     if (tokenURI) {
                         fetch(tokenURI)
                             .then((response) => response.json())
                             .then( function(data){
-                                $(`#img${index}${i}`).html(`<img src="${data.image}" width="128"/>`);
+                                console.log(`#aimg${index}/${i}`, data.image);
+                                $(`#aimg${index}${i}`).html(`<img src="${data.image}" width="128"/>`);
                             } );
                     }
-                } catch (e) {
-                    console.log(e);
-                }
+                },1000);
                 // console.log('tokenURI', tokenURI);
                 const users_length = r.users_length;
                 const seller = r.seller;
@@ -269,7 +269,9 @@ expires in: <select id="${index}expires" style="width: 80px" placeholder="10" cl
                 html += `
                     <li class="list-group-item">
                      <div class="row">
-                        <div class="col-2" id="img${index}${id}"></div>
+                        <div class="col-2" id="aimg${index}${i}">
+                            Wait...
+                        </div>
                         <div class="col-10">
                              #${id}:
                             NFT: ${nft.slice(-4)}, id: ${nft_id},
@@ -302,19 +304,16 @@ expires in: <select id="${index}expires" style="width: 80px" placeholder="10" cl
                 if (nft != address)
                     continue;
                 const nft_id = r.nft_id;
-                try {
+                setTimeout( async function(){
                     const tokenURI = await NFT.methods.tokenURI(nft_id).call();
                     if (tokenURI) {
                         fetch(tokenURI)
                             .then((response) => response.json())
                             .then( function(data){
-                                console.log('data', data);
-                                $(`#img${index}${i}`).html(`<img src="${data.image}" width="128"/>`);
+                                $(`#fimg${index}${i}`).html(`<img src="${data.image}" width="128"/>`);
                             } );
                     }
-                } catch (e) {
-                    console.log(e);
-                }
+                },1000);
                 const winner = r.winner;
                 const users_length = r.users_length;
                 const seller = r.seller;
@@ -323,7 +322,7 @@ expires in: <select id="${index}expires" style="width: 80px" placeholder="10" cl
                 html += `
                     <li class="list-group-item">
                     <div class="row">
-                        <div class="col-2" id="img${index}${i}">
+                        <div class="col-2" id="fimg${index}${i}">
                             Loading...
                         </div>
                         <div class="col-10">
@@ -333,6 +332,55 @@ expires in: <select id="${index}expires" style="width: 80px" placeholder="10" cl
                             Seller: ${seller.slice(-4)}, Price: ${price} CRO,
                             Collected: ${amount} CRO, Total: ${total},
                             winner: ${winner.slice(-4)}
+                            <button href="#" onclick="users(${index}, ${id});" class="btn btn-sm badge rounded-pill bg-secondary">Users</button>
+                            <div id="users${index}${id}"></div>
+                        </div>
+                    </div>
+                    </li>`;
+            }
+            html += '</ul>';
+            return html;
+        }
+
+        async function getExpiredRaffles(index, address, NFT) {
+            const list = await main.methods.getRafflesByStatus('3').call();
+            let html = '<h6>Expired Raffles</h6><ul>';
+            for (let i = 0; i < list.length; i++) {
+                const r = list[i];
+                const id = r.id;
+                const max_per_user = r.max_per_user;
+                const total = r.total;
+                const nft = r.nft;
+                if (nft != address)
+                    continue;
+                const nft_id = r.nft_id;
+                setTimeout( async function(){
+                    const tokenURI = await NFT.methods.tokenURI(nft_id).call();
+                    if (tokenURI) {
+                        fetch(tokenURI)
+                            .then((response) => response.json())
+                            .then( function(data){
+                                $(`#eimg${index}${i}`).html(`<img src="${data.image}" width="128"/>`);
+                            } );
+                    }
+                },1000);
+                const winner = r.winner;
+                const users_length = r.users_length;
+                const seller = r.seller;
+                const price = web3.utils.fromWei(r.price);
+                const amount = web3.utils.fromWei(r.amount);
+                html += `
+                    <li class="list-group-item">
+                    <div class="row">
+                        <div class="col-2" id="eimg${index}${i}">
+                            Loading...
+                        </div>
+                        <div class="col-10">
+                            #${id}:
+                            NFT: ${nft.slice(-4)}, id: ${nft_id},
+                            Users (${users_length}): ,
+                            Seller: ${seller.slice(-4)}, Price: ${price} CRO,
+                            Collected: ${amount} CRO, Total: ${total}
                             <button href="#" onclick="users(${index}, ${id});" class="btn btn-sm badge rounded-pill bg-secondary">Users</button>
                             <div id="users${index}${id}"></div>
                         </div>
@@ -414,7 +462,7 @@ expires in: <select id="${index}expires" style="width: 80px" placeholder="10" cl
 <body onload="bootstrap()">
 <div class="row">
     <div class="col">
-        <div class="badge bg-danger">Beta - Contract audit in progress - proceed with caution</div>
+        <div class="badge bg-danger">Beta - Contract audit in progress</div>
     </div>
     <div class="col" style="text-align:right">
         <div class="badge bg-success">Frontend in progress</div>
