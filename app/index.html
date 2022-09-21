@@ -248,13 +248,24 @@ expires in: <select id="${index}expires" style="width: 80px" placeholder="10" cl
                     continue;
                 const nft_id = r.nft_id;
                 setTimeout( async function(){
-                    const tokenURI = await NFT.methods.tokenURI(nft_id).call();
+                    let tokenURI = await NFT.methods.tokenURI(nft_id).call();
+                    if (tokenURI.startsWith('ipfs://')) {
+                        tokenURI = tokenURI.replaceAll('ipfs://', '');
+                        tokenURI = `https://ipfs.io/ipfs/${tokenURI}`;
+                    }
+
                     if (tokenURI) {
                         fetch(tokenURI)
                             .then((response) => response.json())
                             .then( function(data){
                                 console.log(`#aimg${index}/${i}`, data.image);
-                                $(`#aimg${index}${i}`).html(`<img src="${data.image}" width="128"/>`);
+
+                                let img = data.image;
+                                if (img.startsWith('ipfs://')) {
+                                    img = img.replaceAll('ipfs://', '');
+                                    img = `https://ipfs.io/ipfs/${img}`;
+                                }
+                                $(`#aimg${index}${i}`).html(`<img src="${img}" width="128"/>`);
                             } );
                     }
                 },1000);
@@ -305,12 +316,22 @@ expires in: <select id="${index}expires" style="width: 80px" placeholder="10" cl
                     continue;
                 const nft_id = r.nft_id;
                 setTimeout( async function(){
-                    const tokenURI = await NFT.methods.tokenURI(nft_id).call();
+                    let tokenURI = await NFT.methods.tokenURI(nft_id).call();
+                    if (tokenURI.startsWith('ipfs://')) {
+                        tokenURI = tokenURI.replaceAll('ipfs://', '');
+                        tokenURI = `https://ipfs.io/ipfs/${tokenURI}`;
+                    }
+
                     if (tokenURI) {
                         fetch(tokenURI)
                             .then((response) => response.json())
                             .then( function(data){
-                                $(`#fimg${index}${i}`).html(`<img src="${data.image}" width="128"/>`);
+                                let img = data.image;
+                                if (img.startsWith('ipfs://')) {
+                                    img = img.replaceAll('ipfs://', '');
+                                    img = `https://ipfs.io/ipfs/${img}`;
+                                }
+                                $(`#fimg${index}${i}`).html(`<img src="${img}" width="128"/>`);
                             } );
                     }
                 },1000);
@@ -355,12 +376,21 @@ expires in: <select id="${index}expires" style="width: 80px" placeholder="10" cl
                     continue;
                 const nft_id = r.nft_id;
                 setTimeout( async function(){
-                    const tokenURI = await NFT.methods.tokenURI(nft_id).call();
+                    let tokenURI = await NFT.methods.tokenURI(nft_id).call();
+                    if (tokenURI.startsWith('ipfs://')) {
+                        tokenURI = tokenURI.replaceAll('ipfs://', '');
+                        tokenURI = `https://ipfs.io/ipfs/${tokenURI}`;
+                    }
                     if (tokenURI) {
                         fetch(tokenURI)
                             .then((response) => response.json())
                             .then( function(data){
-                                $(`#eimg${index}${i}`).html(`<img src="${data.image}" width="128"/>`);
+                                let img = data.image;
+                                if (img.startsWith('ipfs://')) {
+                                    img = img.replaceAll('ipfs://', '');
+                                    img = `https://ipfs.io/ipfs/${img}`;
+                                }
+                                $(`#eimg${index}${i}`).html(`<img src="${img}" width="128"/>`);
                             } );
                     }
                 },1000);
