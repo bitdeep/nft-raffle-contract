@@ -44,41 +44,43 @@ contract Main is Ownable, IERC721Receiver {
         string name;
         string twitter;
         string tg;
+        uint category;
     }
 
-    mapping(address => NFT) public nfts;
-    address[] public all_nft;
+    mapping(address => NFT) public properties;
+    address[] public all_contracts;
 
     function add_nft(address nft, uint fee, address royalties_recipient, uint royalties,
         uint listing_fee, address listing_fee_recipient, STATUS status,
-        string memory name, string memory twitter, string memory tg) external onlyOwner {
-        require(nfts[nft].fee == 0, "already exists");
-        all_nft.push(nft);
+        string memory name, string memory twitter, string memory tg, uint category) external onlyOwner {
+        require(properties[nft].fee == 0, "already exists");
+        all_contracts.push(nft);
         _nft(nft, fee, royalties_recipient, royalties,
             listing_fee, listing_fee_recipient, status,
-            name, twitter, tg);
+            name, twitter, tg, category);
     }
 
     function edit_nft(address nft, uint fee, address royalties_recipient, uint royalties,
         uint listing_fee, address listing_fee_recipient, STATUS status,
-        string memory name, string memory twitter, string memory tg) external onlyOwner {
+        string memory name, string memory twitter, string memory tg, uint category) external onlyOwner {
         _nft(nft, fee, royalties_recipient, royalties,
             listing_fee, listing_fee_recipient, status,
-            name, twitter, tg);
+            name, twitter, tg, category);
     }
 
     function _nft(address nft, uint fee, address royalties_recipient, uint royalties,
         uint listing_fee, address listing_fee_recipient, STATUS status,
-        string memory name, string memory twitter, string memory tg) internal {
-        nfts[nft].fee = fee;
-        nfts[nft].status = status;
-        nfts[nft].royalties_recipient = royalties_recipient;
-        nfts[nft].royalties = royalties;
-        nfts[nft].listing_fee = listing_fee;
-        nfts[nft].listing_fee_recipient = listing_fee_recipient;
-        nfts[nft].name = name;
-        nfts[nft].twitter = twitter;
-        nfts[nft].tg = tg;
+        string memory name, string memory twitter, string memory tg, uint category) internal {
+        properties[nft].fee = fee;
+        properties[nft].status = status;
+        properties[nft].royalties_recipient = royalties_recipient;
+        properties[nft].royalties = royalties;
+        properties[nft].listing_fee = listing_fee;
+        properties[nft].listing_fee_recipient = listing_fee_recipient;
+        properties[nft].name = name;
+        properties[nft].twitter = twitter;
+        properties[nft].tg = tg;
+        properties[nft].category = category;
 
         collect_fee_from_expired();
         // process expired
@@ -100,7 +102,7 @@ contract Main is Ownable, IERC721Receiver {
     Raffle[] public raffles;
 
     function getAllNnft() public view returns (address[] memory){
-        return all_nft;
+        return all_contracts;
     }
 
     function getUsersByRaffleId(uint id) public view returns (address[] memory){
@@ -136,6 +138,50 @@ contract Main is Ownable, IERC721Receiver {
         return r;
     }
 
+    function getRafflesByNftAndStatus(address nft, STATUS s) public view returns (Raffle[] memory){
+        uint total;
+        for (uint i = 0; i < raffles.length; i++) {
+            if( raffles[i].nft != nft )
+                continue;
+            if (raffles[i].status != s)
+                continue;
+            total++;
+        }
+        Raffle[] memory r = new Raffle[](total);
+        uint j;
+        for (uint i = 0; i < raffles.length; i++) {
+            if( raffles[i].nft != nft )
+                continue;
+            if (raffles[i].status != s)
+                continue;
+            r[j++] = raffles[i];
+        }
+        return r;
+    }
+
+    function getRafflesByCategory(uint category, STATUS s) public view returns (Raffle[] memory){
+        uint total;
+        for (uint i = 0; i < raffles.length; i++) {
+            address nft = raffles[i].nft;
+            if( properties[nft].category != category )
+                continue;
+            if (raffles[i].status != s)
+                continue;
+            total++;
+        }
+        Raffle[] memory r = new Raffle[](total);
+        uint j;
+        for (uint i = 0; i < raffles.length; i++) {
+            address nft = raffles[i].nft;
+            if( properties[nft].category != category )
+                continue;
+            if (raffles[i].status != s)
+                continue;
+            r[j++] = raffles[i];
+        }
+        return r;
+    }
+
     event Create_Raffle(uint _max_per_user, address _nft, uint _nft_id, uint _price, uint _total, uint index, uint endtime);
 
     function create_raffle(uint _max_per_user, address _nft, uint _nft_id, uint _price, uint _total, uint _endtime) public payable {
@@ -143,8 +189,8 @@ contract Main is Ownable, IERC721Receiver {
         require(_price > 10000, "E2");
         require(_total > 2, "E3");
         require(_nft != address(0), "E4");
-        require(nfts[_nft].status != STATUS.ACTIVE, "E5");
-        require(nfts[_nft].listing_fee == 0 || nfts[_nft].listing_fee == msg.value, "E6");
+        require(properties[_nft].status != STATUS.ACTIVE, "E5");
+        require(properties[_nft].listing_fee == 0 || properties[_nft].listing_fee == msg.value, "E6");
         require(_endtime >= 1 hours && _endtime <= 90 days, "E7");
 
         address[] memory _users = new address[](0);
@@ -245,13 +291,13 @@ contract Main is Ownable, IERC721Receiver {
         uint amount = 0;
         uint fee = 0;
         uint royalties = 0;
-        if (nfts[raffle.nft].fee > 0) {
-            fee = (total * nfts[raffle.nft].fee) / 100;
+        if (properties[raffle.nft].fee > 0) {
+            fee = (total * properties[raffle.nft].fee) / 100;
             amount = total - fee;
-            if (nfts[raffle.nft].royalties > 0) {
-                royalties = (fee * nfts[raffle.nft].royalties) / 100;
+            if (properties[raffle.nft].royalties > 0) {
+                royalties = (fee * properties[raffle.nft].royalties) / 100;
                 fee -= royalties;
-                (bool success, bytes memory data) = nfts[raffle.nft].royalties_recipient.call{value : royalties}("");
+                (bool success, bytes memory data) = properties[raffle.nft].royalties_recipient.call{value : royalties}("");
                 require(success, "error paying royalties");
             }
 
@@ -264,7 +310,18 @@ contract Main is Ownable, IERC721Receiver {
     }
 
     // owner can cancel the raffle any time and refund everyone
-    function cancel(uint raffle_id) public {
+
+    function setCancelFee(address newFee) public onlyOwner {
+        cancelFee = newFee;
+    }
+    uint public cancelFee = 10 ether;
+    function cancel(uint raffle_id) public payable {
+
+        if( cancelFee > 0 ){
+            (bool success1, bytes memory data1) = FEE_RECIPIENT1.call{value : msg.value}("");
+            require(success1, "error paying cancel fee");
+        }
+
         Raffle storage raffle = raffles[raffle_id];
         require(raffle.seller == msg.sender, "not owner");
         _revert(raffle_id);
@@ -298,7 +355,7 @@ contract Main is Ownable, IERC721Receiver {
 
     function collect_fee(uint raffle_id) internal {
         Raffle storage raffle = raffles[raffle_id];
-        NFT storage nft = nfts[raffle.nft];
+        NFT storage nft = properties[raffle.nft];
         uint fee = nft.listing_fee;
         if (fee > 0) {
             uint caller_fee = (fee * _collectFee) / 100;
@@ -331,7 +388,7 @@ contract Main is Ownable, IERC721Receiver {
                 continue;
             if (block.timestamp < raffle.endtime)
                 continue;
-            NFT storage nft = nfts[raffle.nft];
+            NFT storage nft = properties[raffle.nft];
             total += (nft.listing_fee * _collectFee) / 100;
         }
         return total;
