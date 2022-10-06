@@ -23,7 +23,7 @@
         let account;
 
         // contract object to make calls
-        let contract = '0x4E786332922099DbaBD1fb75cbEb914fa5557a6C', main;
+        let contract = '0x8889dc7aa30b3b6dfa00881100fa8edd7817f511', main;
 
         let listing_fee;
 
@@ -107,17 +107,18 @@
             const manage_nft_name = $('#manage_nft_name').val();
             const manage_nft_twitter = $('#manage_nft_twitter').val();
             const manage_nft_tg = $('#manage_nft_tg').val();
+            const category = $('#category').val();
             try {
                 await main.methods.add_nft(mange_nft_nft, mange_nft_fee, royalties_recipient,
                     royalties, listing_fee, listing_fee_recipient, '1',
-                    manage_nft_name, manage_nft_twitter, manage_nft_tg).estimateGas({from: account},
+                    manage_nft_name, manage_nft_twitter, manage_nft_tg, category).estimateGas({from: account},
                     async function (error, gasAmount) {
                         if (error) {
                             alert(error.toString());
                         } else {
                             await main.methods.add_nft(mange_nft_nft, mange_nft_fee, royalties_recipient,
                                 royalties, listing_fee, listing_fee_recipient, '1',
-                                manage_nft_name, manage_nft_twitter, manage_nft_tg).send({
+                                manage_nft_name, manage_nft_twitter, manage_nft_tg, category).send({
                                 from: account,
                                 gas: gasAmount
                             });
@@ -139,17 +140,18 @@
             const manage_nft_name = $('#manage_nft_name').val();
             const manage_nft_twitter = $('#manage_nft_twitter').val();
             const manage_nft_tg = $('#manage_nft_tg').val();
+            const category = $('#category').val();
             try {
                 await main.methods.edit_nft(mange_nft_nft, mange_nft_fee, royalties_recipient,
                     royalties, listing_fee, listing_fee_recipient, '1',
-                    manage_nft_name, manage_nft_twitter, manage_nft_tg).estimateGas({from: account},
+                    manage_nft_name, manage_nft_twitter, manage_nft_tg, category).estimateGas({from: account},
                     async function (error, gasAmount) {
                         if (error) {
                             alert(error.toString());
                         } else {
                             await main.methods.edit_nft(mange_nft_nft, mange_nft_fee, royalties_recipient,
                                 royalties, listing_fee, listing_fee_recipient, '1',
-                                manage_nft_name, manage_nft_twitter, manage_nft_tg).send({
+                                manage_nft_name, manage_nft_twitter, manage_nft_tg, category).send({
                                 from: account,
                                 gas: gasAmount
                             });
@@ -334,6 +336,15 @@
                         <div class="col-sm-8">
                             <input type="text" class="form-control-plaintext" id="manage_status" value=""
                                    placeholder="Ex: 1=ACTIVE,2=FINISHED">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="category" class="col-sm col-form-label">
+                            category number:
+                        </label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control-plaintext" id="category" value=""
+                                   placeholder="Ex: 1=CatA, 2=CatB">
                         </div>
                     </div>
 

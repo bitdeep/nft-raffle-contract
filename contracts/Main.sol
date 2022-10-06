@@ -311,7 +311,7 @@ contract Main is Ownable, IERC721Receiver {
 
     // owner can cancel the raffle any time and refund everyone
 
-    function setCancelFee(address newFee) public onlyOwner {
+    function setCancelFee(uint newFee) public onlyOwner {
         cancelFee = newFee;
     }
     uint public cancelFee = 10 ether;
