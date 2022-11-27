@@ -361,7 +361,7 @@ contract Main is Ownable, IERC721Receiver {
             require(success, "error refunding user");
         }
         //
-        IERC721(raffle.nft).safeTransferFrom(address(this), msg.sender, raffle.nft_id);
+        IERC721(raffle.nft).safeTransferFrom(address(this), raffle.seller, raffle.nft_id);
         raffle.status = STATUS.EXPIRED;
         collect_fee(raffle_id);
         emit Revert(raffle_id);
